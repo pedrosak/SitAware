@@ -1,0 +1,4 @@
+LIBRARY "SitAware"
+EXPORTS
+DLLStart
+DLLStop
