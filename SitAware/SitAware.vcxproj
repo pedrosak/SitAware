@@ -42,17 +42,17 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <GenerateManifest>false</GenerateManifest>
-    <IncludePath>C:\Users\Elite\Desktop\Projects %282015%29\libodb-mssql-2.4.0;C:\Users\Elite\Desktop\Projects %282015%29\libodb-2.4.0;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Users\Elite\Desktop\Projects %282015%29\libodb-2.4.0\lib;C:\Users\Elite\Desktop\Projects %282015%29\libodb-mssql-2.4.0\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>C:\Users\Elite\Desktop\SQLAPI\include;C:\Users\Elite\Desktop\Projects %282015%29\libodb-mssql-2.4.0;C:\Users\Elite\Desktop\Projects %282015%29\libodb-2.4.0;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Users\Elite\Desktop\SQLAPI\vs2013\lib;C:\Users\Elite\Desktop\Projects %282015%29\libodb-2.4.0\lib;C:\Users\Elite\Desktop\Projects %282015%29\libodb-mssql-2.4.0\lib;$(LibraryPath)</LibraryPath>
     <ExcludePath>$(ExcludePath)</ExcludePath>
-    <ExecutablePath>C:\Users\Elite\Desktop\Projects %282015%29\libodb-mssql-2.4.0\bin;C:\Users\Elite\Desktop\Projects %282015%29\libodb-2.4.0\bin;$(ExecutablePath)</ExecutablePath>
+    <ExecutablePath>C:\Users\Elite\Desktop\Projects %282015%29\libodb-mssql-2.4.0\bin;C:\Users\Elite\Desktop\Projects %282015%29\libodb-2.4.0\bin;C:\Users\Elite\Desktop\SQLAPI\vs2013\bin;$(ExecutablePath)</ExecutablePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>C:\Users\Elite\Desktop\Projects %282015%29\libodb-mssql-2.4.0;C:\Users\Elite\Desktop\Projects %282015%29\libodb-2.4.0;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Users\Elite\Desktop\Projects %282015%29\libodb-2.4.0\lib;C:\Users\Elite\Desktop\Projects %282015%29\libodb-mssql-2.4.0\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>C:\Users\Elite\Desktop\SQLAPI\include;C:\Users\Elite\Desktop\Projects %282015%29\libodb-mssql-2.4.0;C:\Users\Elite\Desktop\Projects %282015%29\libodb-2.4.0;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Users\Elite\Desktop\SQLAPI\vs2013\lib;C:\Users\Elite\Desktop\Projects %282015%29\libodb-2.4.0\lib;C:\Users\Elite\Desktop\Projects %282015%29\libodb-mssql-2.4.0\lib;$(LibraryPath)</LibraryPath>
     <ExcludePath>$(ExcludePath)</ExcludePath>
-    <ExecutablePath>C:\Users\Elite\Desktop\Projects %282015%29\libodb-mssql-2.4.0\bin;C:\Users\Elite\Desktop\Projects %282015%29\libodb-2.4.0\bin;$(ExecutablePath)</ExecutablePath>
+    <ExecutablePath>C:\Users\Elite\Desktop\Projects %282015%29\libodb-mssql-2.4.0\bin;C:\Users\Elite\Desktop\Projects %282015%29\libodb-2.4.0\bin;C:\Users\Elite\Desktop\SQLAPI\vs2013\bin;$(ExecutablePath)</ExecutablePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -71,7 +71,7 @@
       </ModuleDefinitionFile>
       <AdditionalLibraryDirectories>
       </AdditionalLibraryDirectories>
-      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>sqlapi.lib;SimConnect.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>
       </IgnoreSpecificDefaultLibraries>
     </Link>
@@ -92,6 +92,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <ModuleDefinitionFile>SimAware.def</ModuleDefinitionFile>
+      <AdditionalDependencies>sqlapi.lib;SimConnect.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -99,31 +100,15 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Connection.h" />
-    <CustomBuild Include="Questions.hxx">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">odb -d mssql -s Questions.hxx</Command>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">compiling Questions.hxx</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Questions-odb.hxx;Questions-odb.ixx;Questions-odb.cxx</Outputs>
-      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-      </LinkObjects>
-      <TreatOutputAsContent Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-      </TreatOutputAsContent>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">odb -d mssql -s Questions.hxx</Command>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">compiling Questions.hxx</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Questions-odb.hxx;Questions-odb.ixx;Questions-odb.cxx</Outputs>
-      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </LinkObjects>
-      <TreatOutputAsContent Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </TreatOutputAsContent>
-    </CustomBuild>
+    <ClInclude Include="Database.h" />
     <ClInclude Include="Interrogator.h" />
-    <ClInclude Include="Questions-odb.hxx" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="SimConnect.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Questions-odb.cxx" />
-    <ClCompile Include="Questions.cpp" />
+    <ClCompile Include="Database.cpp" />
     <ClCompile Include="Interrogator.cpp" />
     <ClCompile Include="SitAware.cpp" />
     <ClCompile Include="Connection.cpp" />
@@ -131,9 +116,6 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Questions-odb.ixx" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

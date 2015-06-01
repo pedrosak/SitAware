@@ -5,6 +5,7 @@
 
 #pragma once
 
+//Standard files
 #include <stdio.h>
 #include <tchar.h>
 #include <Windows.h>
@@ -13,13 +14,18 @@
 #include <string.h>
 #include <iostream>
 #include <stdlib.h>
+#include <SQLAPI.h>
 
+//Database include files
+#include <memory>	//std::auto_ptr
+
+
+
+//Created header files
 #include "SimConnect.h"
 #include "targetver.h"
 #include "Connection.h"
 #include "Interrogator.h"
-#include "DBconn.h"
-
-
+#include "Database.h"
 
 // TODO: reference additional headers your program requires here

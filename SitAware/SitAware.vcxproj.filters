@@ -33,7 +33,10 @@
     <ClInclude Include="SimConnect.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Questions-odb.hxx">
+    <ClInclude Include="Database.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -50,19 +53,8 @@
     <ClCompile Include="Interrogator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Questions.cpp">
+    <ClCompile Include="Database.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Questions-odb.cxx">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <CustomBuild Include="Questions.hxx">
-      <Filter>Header Files</Filter>
-    </CustomBuild>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Questions-odb.ixx" />
   </ItemGroup>
 </Project>

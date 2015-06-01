@@ -6,16 +6,22 @@
 //Main constructor.
 void SitAware()
 {
-	Connection connection = Connection::Connection();
-	Interrogator interrogator = Interrogator::Interrogator();
+	//Connection connection = Connection::Connection();
+	//Interrogator interrogator = Interrogator::Interrogator();
 
 
-	connection.Connect();
-	interrogator.Alert();
+	//connection.Connect();
+	//interrogator.Alert();
 
-	system("Pause");
+	//
 
 	//sIMcONNECT_rEQUESTFACILITIESLIST  to get list of airports
+
+	Database database = Database::Database();
+
+	database.Connect();
+
+	system("Pause");
 }
 
 void _tmain(int argc, _TCHAR* argv[])
@@ -31,5 +37,6 @@ void _tmain(int argc, _TCHAR* argv[])
 	//system("Pause");
 
 	SitAware();
+
 }
 
