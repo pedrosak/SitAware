@@ -33,6 +33,9 @@
     <ClInclude Include="SimConnect.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Questions-odb.hxx">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -50,10 +53,16 @@
     <ClCompile Include="Questions.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Questions-odb.cxx">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="Questions.hxx">
       <Filter>Header Files</Filter>
     </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Questions-odb.ixx" />
   </ItemGroup>
 </Project>

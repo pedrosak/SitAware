@@ -116,11 +116,13 @@
       </TreatOutputAsContent>
     </CustomBuild>
     <ClInclude Include="Interrogator.h" />
+    <ClInclude Include="Questions-odb.hxx" />
     <ClInclude Include="SimConnect.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Questions-odb.cxx" />
     <ClCompile Include="Questions.cpp" />
     <ClCompile Include="Interrogator.cpp" />
     <ClCompile Include="SitAware.cpp" />
@@ -129,6 +131,9 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Questions-odb.ixx" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

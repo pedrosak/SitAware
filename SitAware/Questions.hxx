@@ -1,4 +1,3 @@
-#include <stdafx.h>
 #include <odb\core.hxx>
 
 //use db object to tell the compiler that the class that follows is persistent
