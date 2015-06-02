@@ -100,7 +100,7 @@ int Database::Query(const std::string columns[], std::string& table, std::string
 	cmd.setConnection(&con);
 	
 	//creat command text
-	cmd.setCommandText(cmdString);
+	//cmd.setCommandText(cmdString);
 
 
 	//Try/catch for execution of the command

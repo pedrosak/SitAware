@@ -11,7 +11,8 @@ private:
 	SACommand cmd;
 
 	//command string
-	SADataType_t cmdString;
+	std::string cmdString;
+
 	unsigned int question_number;
 	std::string question_text;
 	std::string question_wave;
