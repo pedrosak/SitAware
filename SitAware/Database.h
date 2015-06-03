@@ -10,8 +10,10 @@ private:
 	//Command object
 	SACommand cmd;
 
+
 	//command string
-	std::string cmdString;
+	char * cmdString = new char [];
+	//SAString * cmdString_ = new SAString(cmdString);
 
 	unsigned int question_number;
 	std::string question_text;
@@ -22,5 +24,6 @@ public:
 	Database::Database();
 	int Database::Connect();
 	int Database::Disconnect();
-	int Database::Query(const std::string columns[], std::string& table, std::string& condition);
+	int Database::Query(const std::string columns[], std::string table, std::string condition);
+	//int Database::Query();
 };

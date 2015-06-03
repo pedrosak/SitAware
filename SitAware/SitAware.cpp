@@ -6,20 +6,13 @@
 //Main constructor.
 void SitAware()
 {
-	//Connection connection = Connection::Connection();
-	//Interrogator interrogator = Interrogator::Interrogator();
-
-
-	//connection.Connect();
-	//interrogator.Alert();
-
-	//
-
-	//sIMcONNECT_rEQUESTFACILITIESLIST  to get list of airports
 
 	Database database = Database::Database();
 
 	database.Connect();
+	std::string column[] = { "question_number", "question_text" };
+
+	database.Query(column, "question_bank", "");
 
 	system("Pause");
 }
