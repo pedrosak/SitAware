@@ -12,8 +12,8 @@ private:
 
 
 	//command string
-	char * cmdString = new char [];
-	//SAString * cmdString_ = new SAString(cmdString);
+	char * cmdString = new char[15645];
+	SAString * cmdString_ = new SAString(cmdString);
 
 	unsigned int question_number;
 	std::string question_text;

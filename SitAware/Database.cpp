@@ -63,54 +63,59 @@ int Database::Query(const std::string columns[], std::string table, std::string 
 	//Flag to distinguish between conditon or no condition
 	unsigned int no_condition_flag = 0;
 	
+	SAString cmdString1;
+
 
 	//Command string will always select from database therfore initial value is SELECT
-
 	cmdString = "SELECT";
-	//std::strcpy(cmdString, "SELECT");
-
 	
+	cmdString1.Insert(0, cmdString);
+	cmdString1.Insert(cmdString1.GetLength(), cmdString);
+	printf("%s", cmdString1);
+
+
+
 	//Get the size of the columns[] array
 	int size_of_columns = sizeof(columns) / sizeof(std::string);
-	printf("%s", cmdString);
+	/*
 	//Each element of columns array will be added to the command string. ex: SELECT column1, column2...
 	for (int i = 0; i <= size_of_columns; i++)
 	{
 		//if it is the last element of the array (or only column) then do not add the comma
 		if (i == size_of_columns)
 		{
-			//strcpy(cmdString, " ");
-			//strcpy(cmdString, columns[i].c_str());
+
+			//strcat(cmdString, " ");
+			//strcat(cmdString, columns[i].c_str());
 			//cmdString = cmdString + *" ";// +columns[i];
-			strcat(cmdString, " ");
+
 
 		}
 		//add the comma until you get to the last element of array
 		else
 		{
-			//strcpy(cmdString, " ");
-			//strcpy(cmdString, columns[i].c_str());
-			//strcpy(cmdString, ",");
+			//strcat(cmdString, " ");
+			//strcat(cmdString, columns[i].c_str());
+			//strcat(cmdString, ",");
 			//cmdString = cmdString + " " + columns[i] + ",";
 		}
 	}
-	printf("%s", cmdString);
-	/*
+
 	//Decided which command statement do produced depeding if the function was passed with a condition or not
 	if (condition == "")
 	{
 		//Create string based on the parameters passed without any condition
-		strcpy(cmdString, " FROM");
+		//strcpy(cmdString, " FROM");
 		//strcpy(cmdString, table.c_str);
 		//cmdString = cmdString + " FROM " + table;
-		no_condition_flag = 1;
+		//no_condition_flag = 1;
 	}
 	else
 	{
 		//Create string based on the parameters passed with condition
-		strcpy(cmdString, " FROM");
+		//strcpy(cmdString, " FROM");
 		//strcpy(cmdString, table.c_str);
-		strcpy(cmdString, " WHERE");
+		//strcpy(cmdString, " WHERE");
 		//strcpy(cmdString, condition.c_str);
 		//cmdString = cmdString + " FROM " + table + " WHERE " + condition;
 	}
@@ -149,6 +154,5 @@ int Database::Query(const std::string columns[], std::string table, std::string 
 		printf("%s\n", (const char*)err.ErrText());
 	}
 	*/
-
 	return 0;
 }
