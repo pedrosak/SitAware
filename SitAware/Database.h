@@ -12,18 +12,19 @@ private:
 
 
 	//command string
-	char * cmdString = new char[15645];
-	SAString * cmdString_ = new SAString(cmdString);
+	char * cmdString = new char[];
+	SAString cmdString_;
 
 	unsigned int question_number;
 	std::string question_text;
 	std::string question_wave;
 	std::string question_variable;
+	std::string  testing_1;
 
 public:
 	Database::Database();
 	int Database::Connect();
 	int Database::Disconnect();
-	int Database::Query(const std::string columns[], std::string table, std::string condition);
+	std::string Database::Query(const char columns[], char table[], char condition[]);
 	//int Database::Query();
 };

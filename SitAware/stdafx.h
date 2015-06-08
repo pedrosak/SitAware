@@ -15,9 +15,7 @@
 #include <iostream>
 #include <stdlib.h>
 #include <SQLAPI.h>
-
-//Database include files
-#include <memory>	//std::auto_ptr
+#include <memory>
 
 
 

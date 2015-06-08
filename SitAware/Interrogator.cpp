@@ -1,4 +1,4 @@
-#include <stdafx.h>
+#include "stdafx.h"
 
 //Constructor.
 Interrogator::Interrogator()
@@ -29,7 +29,13 @@ unsigned int Interrogator::Alert()
 }
 
 //asks the questions. Version 1 will ask via command window. Goal is to do it via speech.
-void Interrogator::Interrogate()
+void Interrogator::Interrogate(const char columns[], char table[], char condition[])
 {
-	printf("What is your current airspeed?\n");
+	//Fetch the questiosn to be asked from database
+	Database database;
+	std::string variable_FSX = database.Query(columns, table, condition);
+	//Ask the questions via text and audio
+	//Check the answer by querying the flight simm
+
+	//Check the answer from user via input and voice (voice to be implemented later)
 }

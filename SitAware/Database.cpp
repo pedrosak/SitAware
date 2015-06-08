@@ -17,7 +17,7 @@ int Database::Connect()
 		//Connect to question_bank database using microsoft autheticator
 		con.Connect("PC4292\\SQLEXPRESS@question_bank", "", "");
 		//When connected notify the user
-		std::cout << "We are connected!\n" << std::endl;
+		std::cout << "\nWe are connected!\n" << std::endl;
 	}
 	catch (SAException &err)
 	{
@@ -44,7 +44,7 @@ int Database::Disconnect()
 		//Disconnect from database
 		con.Disconnect();
 		//Notify the user that disconnection was established
-		std::cout << "Disconnected from database\n" << std::endl;
+		std::cout << "\nDisconnected from database\n" << std::endl;
 	}
 	catch (SAException &err)
 	{
@@ -56,75 +56,45 @@ int Database::Disconnect()
 }
 
 //Query current database obj
-int Database::Query(const std::string columns[], std::string table, std::string condition)
-//int Database::Query()
-{
-	
-	//Flag to distinguish between conditon or no condition
-	unsigned int no_condition_flag = 0;
-	
-	SAString cmdString1;
-
+std::string Database::Query(const char columns[], char table[], char condition[])
+{	
 
 	//Command string will always select from database therfore initial value is SELECT
-	cmdString = "SELECT";
-	
-	cmdString1.Insert(0, cmdString);
-	cmdString1.Insert(cmdString1.GetLength(), cmdString);
-	printf("%s", cmdString1);
-
-
-
-	//Get the size of the columns[] array
-	int size_of_columns = sizeof(columns) / sizeof(std::string);
-	/*
-	//Each element of columns array will be added to the command string. ex: SELECT column1, column2...
-	for (int i = 0; i <= size_of_columns; i++)
-	{
-		//if it is the last element of the array (or only column) then do not add the comma
-		if (i == size_of_columns)
-		{
-
-			//strcat(cmdString, " ");
-			//strcat(cmdString, columns[i].c_str());
-			//cmdString = cmdString + *" ";// +columns[i];
-
-
-		}
-		//add the comma until you get to the last element of array
-		else
-		{
-			//strcat(cmdString, " ");
-			//strcat(cmdString, columns[i].c_str());
-			//strcat(cmdString, ",");
-			//cmdString = cmdString + " " + columns[i] + ",";
-		}
-	}
+	cmdString_ = "SELECT";
 
 	//Decided which command statement do produced depeding if the function was passed with a condition or not
 	if (condition == "")
 	{
 		//Create string based on the parameters passed without any condition
-		//strcpy(cmdString, " FROM");
-		//strcpy(cmdString, table.c_str);
-		//cmdString = cmdString + " FROM " + table;
-		//no_condition_flag = 1;
+		cmdString_.Insert(cmdString_.GetLength(), " ");
+		cmdString_.Insert(cmdString_.GetLength(), columns);
+		cmdString_.Insert(cmdString_.GetLength(), " ");
+		cmdString_.Insert(cmdString_.GetLength(), "FROM");
+		cmdString_.Insert(cmdString_.GetLength(), " ");
+		cmdString_.Insert(cmdString_.GetLength(), table);
+
 	}
 	else
 	{
 		//Create string based on the parameters passed with condition
-		//strcpy(cmdString, " FROM");
-		//strcpy(cmdString, table.c_str);
-		//strcpy(cmdString, " WHERE");
-		//strcpy(cmdString, condition.c_str);
-		//cmdString = cmdString + " FROM " + table + " WHERE " + condition;
+		cmdString_.Insert(cmdString_.GetLength(), " ");
+		cmdString_.Insert(cmdString_.GetLength(), columns);
+		cmdString_.Insert(cmdString_.GetLength(), " ");
+		cmdString_.Insert(cmdString_.GetLength(), "FROM");
+		cmdString_.Insert(cmdString_.GetLength(), " ");
+		cmdString_.Insert(cmdString_.GetLength(), table);
+		cmdString_.Insert(cmdString_.GetLength(), " ");
+		cmdString_.Insert(cmdString_.GetLength(), "WHERE");
+		cmdString_.Insert(cmdString_.GetLength(), " ");
+		cmdString_.Insert(cmdString_.GetLength(), condition);
+
 	}
 
 	//Associate the command with the connection obj
 	cmd.setConnection(&con);
 
 	//creat command text
-	cmd.setCommandText(*cmdString_);
+	cmd.setCommandText(cmdString_);
 
 
 	//Try/catch for execution of the command
@@ -136,8 +106,20 @@ int Database::Query(const std::string columns[], std::string table, std::string 
 		//fetch the data from the execute()
 		while (cmd.FetchNext())
 		{
+			//For the size of the returned value
+
+			for (int j = 1; j <= cmd.FieldCount(); j++)
+			{
+				//Print each of the results
+				printf("%s\n", (const char *)cmd.Field(j).asString());
+
+				testing_1 = cmd.Field(j).asString();
+				std::cout << testing_1.c_str() << std::endl;
+
+			}
 
 		}
+
 	}
 	catch (SAException &err)
 	{
@@ -153,6 +135,6 @@ int Database::Query(const std::string columns[], std::string table, std::string 
 		// print error message
 		printf("%s\n", (const char*)err.ErrText());
 	}
-	*/
-	return 0;
+
+	return testing_1.c_str();
 }

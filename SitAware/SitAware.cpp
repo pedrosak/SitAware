@@ -9,10 +9,15 @@ void SitAware()
 
 	Database database = Database::Database();
 
-	database.Connect();
-	std::string column[] = { "question_number", "question_text" };
+	char column[] = "*";
+	char  table[] = "questions";
+	char condition[] = "question_number = 1";
 
-	database.Query(column, "question_bank", "");
+	database.Connect();
+
+	database.Query(column, table, condition);
+
+	database.Disconnect();
 
 	system("Pause");
 }
