@@ -32,8 +32,8 @@ unsigned int Interrogator::Alert()
 void Interrogator::Interrogate(const char columns[], char table[], char condition[])
 {
 	//Fetch the questiosn to be asked from database
-	Database database;
-	std::string variable_FSX = database.Query(columns, table, condition);
+	//Database database;
+	//std::string variable_FSX = database.Query(columns, table, condition);
 	//Ask the questions via text and audio
 	//Check the answer by querying the flight simm
 

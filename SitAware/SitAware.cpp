@@ -8,6 +8,7 @@ void SitAware()
 {
 
 	Database database = Database::Database();
+	Questions questions = Questions::Questions();
 
 	char column[] = "*";
 	char  table[] = "questions";
@@ -19,22 +20,12 @@ void SitAware()
 
 	database.Disconnect();
 
+
 	system("Pause");
 }
 
 void _tmain(int argc, _TCHAR* argv[])
 {
-	//std::string questions[] = { "This is a questions.\n" };
-
-	//std::string my_string = "Kurt";
-	//
-	//printf("%s\n", my_string.c_str());
-
-	//std::cout << questions[0].c_str();
-
-	//system("Pause");
-
 	SitAware();
-
 }
 

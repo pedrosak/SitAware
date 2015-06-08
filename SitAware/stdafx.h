@@ -25,5 +25,6 @@
 #include "Connection.h"
 #include "Interrogator.h"
 #include "Database.h"
+#include "Questions.h"
 
 // TODO: reference additional headers your program requires here

@@ -2,29 +2,32 @@
 #define Database_h
 #endif
 
+#include "Questions.h"
+
 class Database
 {
 private:
+
 	//Connection object
 	SAConnection con;
 	//Command object
 	SACommand cmd;
 
+	//Define column position of each value
+	static const int TEXT_COLUMN_POSITION = 2;
+	static const int WAV_COLUMN_POSITION = 3;
+	static const int VARIABLE_COLUMN_POSITION = 4;
+	static const int UNITS_COLUMN_POSITION = 5;
 
 	//command string
 	char * cmdString = new char[];
 	SAString cmdString_;
 
-	unsigned int question_number;
-	std::string question_text;
-	std::string question_wave;
-	std::string question_variable;
-	std::string  testing_1;
-
 public:
+
+	Questions questions = Questions::Questions();
 	Database::Database();
 	int Database::Connect();
 	int Database::Disconnect();
-	std::string Database::Query(const char columns[], char table[], char condition[]);
-	//int Database::Query();
+	int Database::Query(const char columns[], char table[], char condition[]);
 };

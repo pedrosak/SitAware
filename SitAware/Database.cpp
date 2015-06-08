@@ -3,7 +3,6 @@
 
 Database::Database()
 {
-
 }
 
 
@@ -56,8 +55,11 @@ int Database::Disconnect()
 }
 
 //Query current database obj
-std::string Database::Query(const char columns[], char table[], char condition[])
+int Database::Query(const char columns[], char table[], char condition[])
 {	
+	//Row count variable (hold count of how may rows have been read by FetchNext()
+	//Always one because FetchNext must alwas return at least one row of value(s)
+	int row_count = 1;
 
 	//Command string will always select from database therfore initial value is SELECT
 	cmdString_ = "SELECT";
@@ -107,16 +109,23 @@ std::string Database::Query(const char columns[], char table[], char condition[]
 		while (cmd.FetchNext())
 		{
 			//For the size of the returned value
-
 			for (int j = 1; j <= cmd.FieldCount(); j++)
 			{
 				//Print each of the results
 				printf("%s\n", (const char *)cmd.Field(j).asString());
-
-				testing_1 = cmd.Field(j).asString();
-				std::cout << testing_1.c_str() << std::endl;
-
 			}
+			
+			//Store question text by reading column 2WAV_COLUMN_POSITION
+			questions.storeQuestionText(row_count, (const char *)cmd.Field(TEXT_COLUMN_POSITION).asString());
+			//Store wav directory by reading column WAV_COLUMN_POSITION
+			questions.storeQuestionWav(row_count, (const char *)cmd.Field(WAV_COLUMN_POSITION).asString());
+			//Store variable by reading column VARIABLE_COLUMN_POSITION
+			questions.storeQuestionVariable(row_count, (const char *)cmd.Field(VARIABLE_COLUMN_POSITION).asString());
+			//Store variable by reading column UNITS_COLUMN_POSITION
+			questions.storeQuestionUnits(row_count, (const char *)cmd.Field(UNITS_COLUMN_POSITION).asString());
+
+			//Increase row count variable 
+			row_count++;
 
 		}
 
@@ -136,5 +145,5 @@ std::string Database::Query(const char columns[], char table[], char condition[]
 		printf("%s\n", (const char*)err.ErrText());
 	}
 
-	return testing_1.c_str();
+	return 1;
 }
