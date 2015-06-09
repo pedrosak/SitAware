@@ -8,7 +8,7 @@
 //Standard files
 #include <stdio.h>
 #include <tchar.h>
-#include <Windows.h>
+#include <windows.h>
 #include <strsafe.h>
 #include <math.h>
 #include <string.h>

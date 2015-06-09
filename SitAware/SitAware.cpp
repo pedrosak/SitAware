@@ -7,19 +7,22 @@
 void SitAware()
 {
 
-	Database database = Database::Database();
-	Questions questions = Questions::Questions();
+	//Database database = Database::Database();
+	//Questions questions = Questions::Questions();
 
-	char column[] = "*";
-	char  table[] = "questions";
-	char condition[] = "question_number = 1";
+	//char column[] = "*";
+	//char  table[] = "questions";
+	//char condition[] = "question_number = 1";
 
-	database.Connect();
+	//database.Connect();
 
-	database.Query(column, table, condition);
+	//database.Query(column, table, condition);
 
-	database.Disconnect();
+	//database.Disconnect();
 
+	Connection connection = Connection::Connection();
+
+	connection.Connect();
 
 	system("Pause");
 }
