@@ -23,8 +23,8 @@
 #include "SimConnect.h"
 #include "targetver.h"
 #include "Connection.h"
-#include "Interrogator.h"
 #include "Database.h"
+#pragma once 
 #include "Questions.h"
 
 // TODO: reference additional headers your program requires here

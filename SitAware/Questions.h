@@ -1,19 +1,19 @@
+#pragma once
 #ifndef Questions_h
 #define Questions_h
+#endif 
 
-
-#include "stdafx.h"
 #include <map>
 
 //Class Questions
-
 class Questions
 {
 private:
-	std::map<int, std::string> question_text;
-	std::map<int, std::string> question_wav;
-	std::map<int, std::string> question_variable;
-	std::map<int, std::string> question_units;
+
+	std::map<int, std::string> Questions::question_text;
+	std::map<int, std::string> Questions::question_wav;
+	std::map<int, std::string> Questions::question_variable;
+	std::map<int, std::string> Questions::question_units;
 
 public:
 
@@ -30,4 +30,3 @@ public:
 	std::string Questions::getQuestionUnits(int number);
 };
 
-#endif

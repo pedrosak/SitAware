@@ -55,7 +55,7 @@ int Database::Disconnect()
 }
 
 //Query current database obj
-int Database::Query(const char columns[], char table[], char condition[])
+int Database::Query(const char columns[], char table[], char condition[], Questions * questions)
 {	
 	//Row count variable (hold count of how may rows have been read by FetchNext()
 	//Always one because FetchNext must alwas return at least one row of value(s)
@@ -116,19 +116,18 @@ int Database::Query(const char columns[], char table[], char condition[])
 			}
 			
 			//Store question text by reading column 2WAV_COLUMN_POSITION
-			questions.storeQuestionText(row_count, (const char *)cmd.Field(TEXT_COLUMN_POSITION).asString());
+			questions->storeQuestionText(row_count, (const char *)cmd.Field(TEXT_COLUMN_POSITION).asString());
 			//Store wav directory by reading column WAV_COLUMN_POSITION
-			questions.storeQuestionWav(row_count, (const char *)cmd.Field(WAV_COLUMN_POSITION).asString());
+			questions->storeQuestionWav(row_count, (const char *)cmd.Field(WAV_COLUMN_POSITION).asString());
 			//Store variable by reading column VARIABLE_COLUMN_POSITION
-			questions.storeQuestionVariable(row_count, (const char *)cmd.Field(VARIABLE_COLUMN_POSITION).asString());
+			questions->storeQuestionVariable(row_count, (const char *)cmd.Field(VARIABLE_COLUMN_POSITION).asString());
 			//Store variable by reading column UNITS_COLUMN_POSITION
-			questions.storeQuestionUnits(row_count, (const char *)cmd.Field(UNITS_COLUMN_POSITION).asString());
+			questions->storeQuestionUnits(row_count, (const char *)cmd.Field(UNITS_COLUMN_POSITION).asString());
 
 			//Increase row count variable 
 			row_count++;
 
 		}
-
 	}
 	catch (SAException &err)
 	{

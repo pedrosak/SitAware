@@ -2,12 +2,10 @@
 #define Database_h
 #endif
 
-#include "Questions.h"
 
 class Database
 {
 private:
-
 	//Connection object
 	SAConnection con;
 	//Command object
@@ -25,9 +23,8 @@ private:
 
 public:
 
-	Questions questions = Questions::Questions();
 	Database::Database();
 	int Database::Connect();
 	int Database::Disconnect();
-	int Database::Query(const char columns[], char table[], char condition[]);
+	int Database::Query(const char columns[], char table[], char condition[], Questions *questions);
 };

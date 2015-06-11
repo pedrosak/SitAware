@@ -6,25 +6,26 @@
 //Main constructor.
 void SitAware()
 {
+	//make question then pass ptr to the database and connection objects
+	Questions questions = Questions::Questions();
 
-	//Database database = Database::Database();
-	//Questions questions = Questions::Questions();
+	Questions *questionPtr;
 
-	//char column[] = "*";
-	//char  table[] = "questions";
-	//char condition[] = "question_number = 1";
-
-	//database.Connect();
-
-	//database.Query(column, table, condition);
-
-	//database.Disconnect();
+	questionPtr = &questions;
 
 	Connection connection = Connection::Connection();
 
-	connection.Connect();
+	Database database = Database::Database();
 
-	system("Pause");
+	database.Connect();
+
+	database.Query("*", "questions", "", questionPtr);
+
+	database.Disconnect();
+	
+	connection.Connect(questionPtr);
+
+	//system("Pause");
 }
 
 void _tmain(int argc, _TCHAR* argv[])

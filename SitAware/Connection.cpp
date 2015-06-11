@@ -4,13 +4,37 @@ unsigned int Connection::quit = 0;
 
 HANDLE Connection::hSimConnect = NULL;
 
+//Data definition for requests sent to SImConnect
+static enum DATA_REQUEST_ID
+{
+	REQUEST,
+};
+
+struct Answer
+{
+	char title[256];
+	double answer_value;
+};
+
+//Data definition of client EVENTS with the SimConnect server
+static enum DATA_DEFINE_ID
+{
+	DEFINITION,
+};
+
+static enum EVENT_ID
+{
+	EVENT_SIM_START
+};
+
+
 //Constructor. Defines HANDLE variable
 Connection::Connection()
 {
 }
 
 //Initiate connectino with SimConnect
-void Connection::Connect()
+void Connection::Connect(Questions *questions)
 {
 	HRESULT hr;
 
@@ -19,14 +43,25 @@ void Connection::Connect()
 	{
 		printf("Attempting to connect to Flight Simulator X\n");
 
+		hr = SimConnect_Open(&Connection::hSimConnect, "Situation Awareness Questionare", NULL, 0, NULL, 0);
 		//Call SimConnect function to open a new connection.
-		if (SUCCEEDED(SimConnect_Open(&Connection::hSimConnect, "Situation Awareness Questionare", NULL, 0, NULL, 0)))
+		if (hr == S_OK)
 		{
 			//SimConnect_Open returned S_OK
 			printf("Connection established with Flight Simulator X\n");
 			 
-			hr = SimConnect_AddToDataDefinition(Connection::hSimConnect, DEFINITION, questions.getQuestionVariable(1).c_str(), questions.getQuestionUnits(1).c_str());
 
+			hr = SimConnect_AddToDataDefinition(hSimConnect, DEFINITION, "Title", NULL, SIMCONNECT_DATATYPE_STRING256);
+			
+
+			//data definition set up. This sets the FSX simulation variable to a client defined object definition (in this case enum DEFINITION is the client defined data definition)
+			hr = SimConnect_AddToDataDefinition(Connection::hSimConnect, DEFINITION, questions->getQuestionVariable(3).c_str(), questions->getQuestionUnits(3).c_str());
+			//hr = SimConnect_AddToDataDefinition(Connection::hSimConnect, DEFINITION,"Indicated Altitude", "feet");
+
+			//Requesting an FSX event. This even is to see if the simulation has started.
+			hr = SimConnect_SubscribeToSystemEvent(hSimConnect, EVENT_SIM_START, "SimStart");
+
+			SimConnect_RequestDataOnSimObject(hSimConnect, REQUEST, DEFINITION, SIMCONNECT_OBJECT_ID_USER, SIMCONNECT_PERIOD_SECOND);
 
 			while (quit == 0)
 			{
@@ -41,7 +76,13 @@ void Connection::Connect()
 			//FSX has quit, disconnect.
 			Connection::Disconnect();
 		}
+		else
+		{
+			printf("\nUnable to connect to Flight Simulator X\n");
+		}
 	}
+
+	Connection::Pause();
 }
 
 //Disconnect from SimConnect Server
@@ -70,19 +111,18 @@ void CALLBACK Connection::MyDispatchProc(SIMCONNECT_RECV * pData, DWORD cbData, 
 {
 	HRESULT hr;
 
-	hr = SimConnect_RequestDataOnSimObject(Connection::hSimConnect, REQUEST, DEFINITION, SIMCONNECT_OBJECT_ID_USER, SIMCONNECT_PERIOD_ONCE);
-
 	switch (pData->dwID)
 	{
 		case SIMCONNECT_RECV_ID_EVENT:
 		{
 			SIMCONNECT_RECV_EVENT *evt = (SIMCONNECT_RECV_EVENT*)pData;
+
 			switch (evt->uEventID)
 			{
 			case EVENT_SIM_START:
 
 				// Now the sim is running, request information on the user aircraft
-				hr = SimConnect_RequestDataOnSimObject(Connection::hSimConnect, REQUEST, DEFINITION, SIMCONNECT_OBJECT_ID_USER, SIMCONNECT_PERIOD_ONCE);
+				hr = SimConnect_RequestDataOnSimObject(Connection::hSimConnect, REQUEST, DEFINITION, 0, SIMCONNECT_PERIOD_ONCE);
 
 				break;
 
@@ -91,13 +131,28 @@ void CALLBACK Connection::MyDispatchProc(SIMCONNECT_RECV * pData, DWORD cbData, 
 			}
 			break;
 		}
-		//SimConect cannot process a request
-		//case SIMCONNECT_RECV_ID_EXCEPTION:
-		//{
-		//	SIMCONNECT_RECV_EXCEPTION * except = (SIMCONNECT_RECV_EXCEPTION *)pData;
-		//	printf("Exception %d on packet %d, argument %d. (%s)", except->dwException, except->dwSendID, except->dwIndex, Connection::Exception_String(except->dwException));
-		//}
-		//break;
+
+		case SIMCONNECT_RECV_ID_SIMOBJECT_DATA:
+		{
+			SIMCONNECT_RECV_SIMOBJECT_DATA_BYTYPE *pObjData = (SIMCONNECT_RECV_SIMOBJECT_DATA_BYTYPE*)pData;
+			switch (pObjData->dwRequestID)
+			{
+			case REQUEST:
+			{
+				DWORD ObjectID = pObjData->dwObjectID;
+				Answer *Answerptr = (Answer*)&pObjData->dwData;
+				if (SUCCEEDED(StringCbLengthA(&Answerptr->title[0], sizeof(Answerptr->title), NULL))) // security check
+				{
+					printf("\nObjectID = %d  Title = \"%s\"\nAnswer = %f \n", ObjectID, Answerptr->title, Answerptr->answer_value);
+				}
+				break;
+			}
+
+			default:
+				break;
+			}
+			break;
+		}
 
 		//Deals with quitting FSX
 		case SIMCONNECT_RECV_ID_QUIT:
@@ -106,31 +161,13 @@ void CALLBACK Connection::MyDispatchProc(SIMCONNECT_RECV * pData, DWORD cbData, 
 		break;
 
 		default:
-			printf("Ignored Event ID\n");
+			printf("Ignored Event ID. Received: %d\n", pData->dwID);
 		break;
 	}
 }
 
-/*This function was created by the owner of the FollowThisPlane project
-I, Kurt Pedrosa, take no ownership of fucntion Exception_String(DWORD Recv_Exception).
-I hearby give credit to the owner/programmer of FollowThisPlane for the following function
-*/
-// Returns the description of the exception number
-char* Connection::Exception_String(DWORD Recv_Exception)
+void Connection::Pause()
 {
-	// Names of Exceptions
-	char* EXCEPTION_String[] =
-	{
-		"NONE", "ERROR", "SIZE_MISMATCH", "UNRECOGNIZED_ID", "UNOPENED", "VERSION_MISMATCH", "TOO_MANY_GROUPS",
-		"NAME_UNRECOGNIZED", "TOO_MANY_EVENT_NAMES", "EVENT_ID_DUPLICATE", "TOO_MANY_MAPS",
-		"TOO_MANY_OBJECTS", "TOO_MANY_REQUESTS", "WEATHER_INVALID_PORT", "WEATHER_INVALID_METAR",
-		"WEATHER_UNABLE_TO_GET_OBSERVATION", "WEATHER_UNABLE_TO_CREATE_STATION",
-		"WEATHER_UNABLE_TO_REMOVE_STATION", "INVALID_DATA_TYPE", "INVALID_DATA_SIZE",
-		"DATA_ERROR", "INVALID_ARRAY", "CREATE_OBJECT_FAILED", "LOAD_FLIGHTPLAN_FAILED",
-		"OPERATION_INVALID_FOR_OBJECT_TYPE", "ILLEGAL_OPERATION", "ALREADY_SUBSCRIBED", "INVALID_ENUM",
-		"DEFINITION_ERROR", "DUPLICATE_ID", "DATUM_ID", "OUT_OF_BOUNDS", "ALREADY_CREATED",
-		"OBJECT_OUTSIDE_REALITY_BUBBLE", "OBJECT_CONTAINER", "OBJECT_AI", "OBJECT_ATC", "OBJECT_SCHEDULE",
-	};
-	// Return "unknown" if out of bound
-	return Recv_Exception > ARRAYSIZE(EXCEPTION_String) ? "unknown" : EXCEPTION_String[Recv_Exception];
+	std::cin.sync();	//Flush the input buffer
+	std::cin.ignore();	//Dont store any input by the user.
 }
