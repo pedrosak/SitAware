@@ -50,17 +50,16 @@ void Connection::Connect(Questions *questions)
 			//SimConnect_Open returned S_OK
 			printf("Connection established with Flight Simulator X\n");
 			 
-
+			//data definition set up. This returnst the airplane name being used.
 			hr = SimConnect_AddToDataDefinition(hSimConnect, DEFINITION, "Title", NULL, SIMCONNECT_DATATYPE_STRING256);
 			
-
 			//data definition set up. This sets the FSX simulation variable to a client defined object definition (in this case enum DEFINITION is the client defined data definition)
 			hr = SimConnect_AddToDataDefinition(Connection::hSimConnect, DEFINITION, questions->getQuestionVariable(3).c_str(), questions->getQuestionUnits(3).c_str());
-			//hr = SimConnect_AddToDataDefinition(Connection::hSimConnect, DEFINITION,"Indicated Altitude", "feet");
 
 			//Requesting an FSX event. This even is to see if the simulation has started.
 			hr = SimConnect_SubscribeToSystemEvent(hSimConnect, EVENT_SIM_START, "SimStart");
 
+			//Requests the data from the FSX server. The last argument dictates how ofter the data is requested.
 			SimConnect_RequestDataOnSimObject(hSimConnect, REQUEST, DEFINITION, SIMCONNECT_OBJECT_ID_USER, SIMCONNECT_PERIOD_SECOND);
 
 			while (quit == 0)

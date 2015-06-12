@@ -108,14 +108,16 @@ int Database::Query(const char columns[], char table[], char condition[], Questi
 		//fetch the data from the execute()
 		while (cmd.FetchNext())
 		{
-			//For the size of the returned value
-			for (int j = 1; j <= cmd.FieldCount(); j++)
-			{
-				//Print each of the results
-				printf("%s\n", (const char *)cmd.Field(j).asString());
-			}
+
+			//For loop for testing the query of the data
+			////For the size of the returned value
+			//for (int j = 1; j <= cmd.FieldCount(); j++)
+			//{
+			//	//Print each of the results
+			//	printf("%s\n", (const char *)cmd.Field(j).asString());
+			//}
 			
-			//Store question text by reading column 2WAV_COLUMN_POSITION
+			//Store question text by reading column TEXT_COLUMN_POSITION
 			questions->storeQuestionText(row_count, (const char *)cmd.Field(TEXT_COLUMN_POSITION).asString());
 			//Store wav directory by reading column WAV_COLUMN_POSITION
 			questions->storeQuestionWav(row_count, (const char *)cmd.Field(WAV_COLUMN_POSITION).asString());
