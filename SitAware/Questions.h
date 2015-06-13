@@ -28,5 +28,7 @@ public:
 	std::string Questions::getQuestionWav(int number);
 	std::string Questions::getQuestionVariable(int number);
 	std::string Questions::getQuestionUnits(int number);
+
+	int Questions::getNumberofElements();
 };
 

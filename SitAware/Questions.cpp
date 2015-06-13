@@ -57,3 +57,9 @@ std::string Questions::getQuestionUnits(int number)
 
 	return Questions::question_units[number];
 }
+
+//Return how many members in the map questions
+int Questions::getNumberofElements()
+{
+	return Questions::question_text.size();
+}
