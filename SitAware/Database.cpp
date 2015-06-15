@@ -59,7 +59,7 @@ int Database::Query(const char columns[], char table[], char condition[], Questi
 {	
 	//Row count variable (hold count of how may rows have been read by FetchNext()
 	//Always one because FetchNext must alwas return at least one row of value(s)
-	int row_count = 1;
+	row_count = 1;
 
 	//Command string will always select from database therfore initial value is SELECT
 	cmdString_ = "SELECT";
@@ -147,4 +147,9 @@ int Database::Query(const char columns[], char table[], char condition[], Questi
 	}
 
 	return 1;
+}
+
+int Database::getRowNumber()
+{
+	return row_count;
 }

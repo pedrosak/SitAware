@@ -12,6 +12,7 @@
 #include <strsafe.h>
 #include <math.h>
 #include <string.h>
+#include <sstream>
 #include <iostream>
 #include <stdlib.h>
 #include <SQLAPI.h>
@@ -24,7 +25,6 @@
 #include "targetver.h"
 #include "Connection.h"
 #include "Database.h"
-#pragma once 
 #include "Questions.h"
 
 // TODO: reference additional headers your program requires here

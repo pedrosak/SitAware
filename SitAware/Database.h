@@ -12,10 +12,12 @@ private:
 	SACommand cmd;
 
 	//Define column position of each value
-	static const int TEXT_COLUMN_POSITION = 2;
-	static const int WAV_COLUMN_POSITION = 3;
-	static const int VARIABLE_COLUMN_POSITION = 4;
-	static const int UNITS_COLUMN_POSITION = 5;
+	const int TEXT_COLUMN_POSITION = 2;
+	const int WAV_COLUMN_POSITION = 3;
+	const int VARIABLE_COLUMN_POSITION = 4;
+	const int UNITS_COLUMN_POSITION = 5;
+
+	int row_count;
 
 	//command string
 	char * cmdString = new char[];
@@ -27,4 +29,5 @@ public:
 	int Database::Connect();
 	int Database::Disconnect();
 	int Database::Query(const char columns[], char table[], char condition[], Questions *questions);
+	int Database::getRowNumber();
 };
