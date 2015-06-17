@@ -2,7 +2,9 @@
 #define Connection_h
 #endif
 
+#include <tuple>
 #include "Questions.h"
+#include "Interrogator.h"
 
 //Class Connection
 class Connection
@@ -14,11 +16,17 @@ public:
 	//Variables used with Simconnect
 	static HANDLE hSimConnect;
 
+	static double fsx_result;
+	std::tuple<double, float> answer_buffer;
+	double fsx_answer_buffer;
+	double result_buffer;
+
+
 
 	Connection::Connection();	//Constructor
-	void Connection::Connect(Questions *questions);				//Initiates connection with SimConnect
+	void Connection::Connect(Questions *questions, Interrogator *interrogator);				//Initiates connection with SimConnect
 	void Connection::Disconnect();			//Disconnects from SimConnect and cleansup
 	static void CALLBACK MyDispatchProc(SIMCONNECT_RECV * pData, DWORD cbData, void *pContext);	//Callback function to handel all the communcations with the simconnect server
-
+	double Connection::getAnswer();
 	void Connection::Pause();
 };

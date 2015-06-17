@@ -16,7 +16,7 @@ int Database::Connect()
 		//Connect to question_bank database using microsoft autheticator
 		con.Connect("PC4292\\SQLEXPRESS@question_bank", "", "");
 		//When connected notify the user
-		std::cout << "\nWe are connected!\n" << std::endl;
+		std::cout << "\nConnected to the database.\n" << std::endl;
 	}
 	catch (SAException &err)
 	{
