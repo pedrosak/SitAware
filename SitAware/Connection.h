@@ -21,7 +21,7 @@ public:
 	double fsx_answer_buffer;
 	double result_buffer;
 
-
+	static int started_flag;
 
 	Connection::Connection();	//Constructor
 	void Connection::Connect(Questions *questions, Interrogator *interrogator);				//Initiates connection with SimConnect
