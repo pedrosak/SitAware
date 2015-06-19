@@ -1,6 +1,6 @@
 #include "stdafx.h"
 
-unsigned int Connection::quit = 0;
+unsigned int Connection::quit;
 
 HANDLE Connection::hSimConnect = NULL;
 
@@ -15,10 +15,12 @@ static enum DATA_REQUEST_ID
 {
 	REQUEST,
 };
+
 struct Answer
  {
-	double answer_;
-	double answer_test;
+	double ac_airspeed;
+	double ac_alt;
+	double ac_heading;
 };
 
 //Data definition of client EVENTS with the SimConnect server
@@ -30,6 +32,7 @@ static enum DATA_DEFINE_ID
 static enum EVENT_ID
 {
 	EVENT_SIM_START,
+	EVENT_SIM_STOP,
 	EVENT_TIMER
 };
 
@@ -68,40 +71,43 @@ void Connection::Connect(Questions *questions, Interrogator *interrogator)
 
 			//Requesting an FSX event. This even is to see if the simulation has started.
 			hr = SimConnect_SubscribeToSystemEvent(hSimConnect, EVENT_SIM_START, "SimStart");
+			hr = SimConnect_SubscribeToSystemEvent(hSimConnect, EVENT_SIM_STOP, "SimStop");
 			hr = SimConnect_SubscribeToSystemEvent(hSimConnect, EVENT_TIMER, "1sec");
-
-			//Requests the data from the FSX server. The last argument dictates how ofter the data is requested.
-			//SimConnect_RequestDataOnSimObject(hSimConnect, REQUEST, DEFINITION, SIMCONNECT_OBJECT_ID_USER, SIMCONNECT_PERIOD_SIM_FRAME);
 
 				while (quit == 0)
 				{
-					if (Connection::started_flag == 1)
+				skip_loop: if (Connection::started_flag == 1)
 					{
-						//for(z = 1; z <= questions->getNumberofElements(); z++)
-						//{
+						for(z = 1; z <= questions->getNumberofElements(); z++)
+						{
 
-						//	//ask question and save answer to a answer buffer
-						//	answer_buffer = interrogator->askQuestion(questions);
+							//ask question and save answer to a answer buffer
+							answer_buffer = interrogator->askQuestion(questions, z);
 
-						//	//Process the next SimConnect messaged recieved thorugh the spcified callback function MyDispatchProc
-						//	SimConnect_CallDispatch(Connection::hSimConnect, MyDispatchProc, NULL);
+							//Process the next SimConnect messaged recieved thorugh the spcified callback function MyDispatchProc
+							SimConnect_CallDispatch(Connection::hSimConnect, MyDispatchProc, NULL);
 
-						//	//calculate the difference between user answer and FSX answer
-						//	fsx_answer_buffer = Connection::getAnswer();
+							//calculate the difference between user answer and FSX answer
+							fsx_answer_buffer = Connection::getAnswer();
 
-						//	result_buffer = abs(fsx_answer_buffer - std::get<0>(answer_buffer));
+							result_buffer = abs(fsx_answer_buffer - std::get<0>(answer_buffer));
 
-						//	printf("\nFSX answer: %f. User answer: %f. Differance is %f. Response time: %f\n", fsx_answer_buffer,std::get<0>(answer_buffer), 
-						//		result_buffer, std::get<1>(answer_buffer));
-
-						//	//Give time for other process to execute.
-						//	Sleep(1);
-						//}
-						//quit = 1;
-						SimConnect_CallDispatch(Connection::hSimConnect, MyDispatchProc, NULL);
+							printf("\nFSX answer: %f. User answer: %f. Differance is %f. Response time: %f\n", fsx_answer_buffer,std::get<0>(answer_buffer), 
+								result_buffer, std::get<1>(answer_buffer));
+							if (started_flag != 1)
+							{
+								goto skip_loop;
+							}
+							//Give time for other process to execute.
+							Sleep(1);
+						}
+						//You have asked all of the questions. Let's exit the loop
+						std::cout << "\nNo more questions in the database!\n" << std::endl;
+						quit = 1;
 					}
 					else
 					{
+
 						SimConnect_CallDispatch(Connection::hSimConnect, MyDispatchProc, NULL);
 					}
 				}
@@ -160,21 +166,29 @@ void CALLBACK Connection::MyDispatchProc(SIMCONNECT_RECV * pData, DWORD cbData, 
 				case EVENT_SIM_START:
 
 					// Now the sim is running, request information on the user aircraft
-					hr = SimConnect_RequestDataOnSimObject(Connection::hSimConnect, REQUEST, DEFINITION, 0, SIMCONNECT_PERIOD_ONCE);
-					std::cout << "Event Sim Start" << std::endl;
+					hr = SimConnect_RequestDataOnSimObject(Connection::hSimConnect, REQUEST, DEFINITION,0, SIMCONNECT_PERIOD_ONCE);
+					//std::cout << "Event Sim Start" << std::endl;
 					started_flag = 1;
 
+					break;
+				case EVENT_SIM_STOP:
+
+					//Sim stopped running. Restart the questions.
+					started_flag = 0;
+					z = 1;
+					std::cout << "Event Sim Stop" << std::endl;
 					break;
 				case EVENT_TIMER:
 				{
 					if (started_flag == 1)
 					{
 						// Now the sim is running, request information on the user aircraft
-						hr = SimConnect_RequestDataOnSimObject(Connection::hSimConnect, REQUEST, DEFINITION, 0, SIMCONNECT_PERIOD_ONCE);
-						std::cout << "Event Timer" << std::endl;
+						hr = SimConnect_RequestDataOnSimObject(Connection::hSimConnect, REQUEST,0, DEFINITION, SIMCONNECT_PERIOD_ONCE);
+						//std::cout << "Event Timer" << std::endl;
 					}
-				}
+
 				break;
+				}
 
 				default:
 				break;
@@ -186,7 +200,7 @@ void CALLBACK Connection::MyDispatchProc(SIMCONNECT_RECV * pData, DWORD cbData, 
 		case SIMCONNECT_RECV_ID_SIMOBJECT_DATA:
 		{
 			//Simobject pointer
-			SIMCONNECT_RECV_SIMOBJECT_DATA *pObjData = (SIMCONNECT_RECV_SIMOBJECT_DATA*)pData;
+			SIMCONNECT_RECV_SIMOBJECT_DATA_BYTYPE *pObjData = (SIMCONNECT_RECV_SIMOBJECT_DATA_BYTYPE*)pData;
 
 			switch (pObjData->dwRequestID)
 			{
@@ -199,7 +213,7 @@ void CALLBACK Connection::MyDispatchProc(SIMCONNECT_RECV * pData, DWORD cbData, 
 				//Answer pointer
 				Answer *Answerptr = (Answer*)&pObjData->dwData;
 
-				std::cout << pObjData->dwentrynumber << std::endl;
+				//std::cout << pObjData->dwentrynumber << std::endl;
 				//Connection::fsx_result = Answerptr->test_map[0];
 
 			break;
@@ -217,7 +231,9 @@ void CALLBACK Connection::MyDispatchProc(SIMCONNECT_RECV * pData, DWORD cbData, 
 			printf("\nFSX has been terminated.\n");
 		break;
 
+		//Identifys that FSX is open
 		case SIMCONNECT_RECV_ID_OPEN:
+			Connection::quit = 0;
 			std::cout << "\nFSX is currently open.\n";
 		break;
 
