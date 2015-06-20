@@ -55,6 +55,7 @@ void Connection::Connect(Questions *questions, Interrogator *interrogator)
 
 		hr = SimConnect_Open(&Connection::hSimConnect, "Situation Awareness Questionare", NULL, 0, NULL, 0);
 		//Call SimConnect function to open a new connection.
+
 		if (hr == S_OK)
 		{
 			//SimConnect_Open returned S_OK
@@ -69,7 +70,7 @@ void Connection::Connect(Questions *questions, Interrogator *interrogator)
 				hr = SimConnect_AddToDataDefinition(Connection::hSimConnect, DEFINITION, questions->getQuestionVariable(i).c_str(), questions->getQuestionUnits(i).c_str());
 			}
 
-			//Requesting an FSX event. This even is to see if the simulation has started.
+			//Requesting  FSX event.
 			hr = SimConnect_SubscribeToSystemEvent(hSimConnect, EVENT_SIM_START, "SimStart");
 			hr = SimConnect_SubscribeToSystemEvent(hSimConnect, EVENT_SIM_STOP, "SimStop");
 			hr = SimConnect_SubscribeToSystemEvent(hSimConnect, EVENT_TIMER, "1sec");
@@ -252,8 +253,6 @@ void Connection::Pause()
 }
 
 double Connection::getAnswer()
-{
-	
+{	
 	return Connection::fsx_result;
-
 }
