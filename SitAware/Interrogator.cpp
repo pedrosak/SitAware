@@ -6,8 +6,14 @@ Interrogator::Interrogator()
 
 }
 
+//Destructor
+Interrogator::~Interrogator()
+{
+
+}
+
 //Ask one question as the user presses key 1. Goes down the list of questions database
-std::tuple<double, float> Interrogator::askQuestion(Questions *questions, int i)
+std::tuple<long, long> Interrogator::askQuestion(Questions *questions, int i)
 {
 	//Ask user to press one to ask a questions
 	std::cout << "\nPress 1 to ask a questions: ";
@@ -27,7 +33,10 @@ std::tuple<double, float> Interrogator::askQuestion(Questions *questions, int i)
 		std::cin.ignore(100, '\n');
 
 		//take in input and save it to variable answer_string
-		std::cin >> answer_double;
+		std::cin >> user_input_answer;
+		
+		//if string save it differently
+		//In case the questions requires a string answer
 
 		//stop timer and return it
 		time_buffer = Interrogator::stopClock(start_time_buffer);
@@ -41,7 +50,7 @@ std::tuple<double, float> Interrogator::askQuestion(Questions *questions, int i)
 		std::cin.clear();
 		std::cin.ignore(100, '\n');
 			
-		answer_double = -1;
+		user_input_answer = -1;
 		time_buffer = -1;
 	}
 	//else
@@ -53,7 +62,7 @@ std::tuple<double, float> Interrogator::askQuestion(Questions *questions, int i)
 
 	//}
 
-	return_values = std::make_tuple(answer_double, time_buffer);
+	return_values = std::make_tuple(user_input_answer, time_buffer);
 	return return_values;
 }
 
@@ -65,8 +74,8 @@ clock_t Interrogator::startClock()
 }
 
 //(Wow wow wow) Stop the clock
-clock_t Interrogator::stopClock(float start_time)
+clock_t Interrogator::stopClock(long start_time)
 {
 	clock_t stop_time = clock();
-	return ((float)stop_time - start_time)/CLOCKS_PER_SEC;
+	return ((long)stop_time - start_time)/CLOCKS_PER_SEC;
 }

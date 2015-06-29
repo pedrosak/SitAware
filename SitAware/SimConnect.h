@@ -1,6 +1,6 @@
 //-----------------------------------------------------------------------------
 //
-// Copyright (c) 2006 by Microsoft, all rights reserved
+// Copyright (c) Microsoft Corporation. All Rights Reserved.
 //
 //-----------------------------------------------------------------------------
 
@@ -13,8 +13,8 @@
 #if _MSC_FULL_VER >= 140040130
 #ifdef _M_IX86
 #pragma comment(linker,"/manifestdependency:\"type='win32' " \
-    "name='" "Microsoft.FlightSimulator.SimConnect " "' " \
-    "version='" "10.0.60905.0" "' " \
+    "name='" "Microsoft.FlightSimulator.SimConnect" "' " \
+    "version='" "10.0.61259.0" "' " \
     "processorArchitecture='x86' " \
     "publicKeyToken='" "67c7c14424d61b5b" "'\"")
 #endif
@@ -38,6 +38,7 @@ static const DWORD SIMCONNECT_OBJECT_ID_USER   = 0;           // proxy value for
 
 static const float SIMCONNECT_CAMERA_IGNORE_FIELD   = FLT_MAX;  //Used to tell the Camera API to NOT modify the value in this part of the argument.
 
+static const DWORD SIMCONNECT_CLIENTDATA_MAX_SIZE = 8192;     // maximum value for SimConnect_CreateClientData dwSize parameter
 
 
 // Notification Group priority values
@@ -57,6 +58,20 @@ static const float MAX_THERMAL_RATE = 1000;
 // SIMCONNECT_DATA_INITPOSITION.Airspeed
 static const DWORD INITPOSITION_AIRSPEED_CRUISE = -1;       // aircraft's cruise airspeed
 static const DWORD INITPOSITION_AIRSPEED_KEEP = -2;         // keep current airspeed
+
+// AddToClientDataDefinition dwSizeOrType parameter type values
+static const DWORD SIMCONNECT_CLIENTDATATYPE_INT8       = -1;   //  8-bit integer number
+static const DWORD SIMCONNECT_CLIENTDATATYPE_INT16      = -2;   // 16-bit integer number
+static const DWORD SIMCONNECT_CLIENTDATATYPE_INT32      = -3;   // 32-bit integer number
+static const DWORD SIMCONNECT_CLIENTDATATYPE_INT64      = -4;   // 64-bit integer number
+static const DWORD SIMCONNECT_CLIENTDATATYPE_FLOAT32    = -5;   // 32-bit floating-point number (float)
+static const DWORD SIMCONNECT_CLIENTDATATYPE_FLOAT64    = -6;   // 64-bit floating-point number (double)
+
+// AddToClientDataDefinition dwOffset parameter special values
+static const DWORD SIMCONNECT_CLIENTDATAOFFSET_AUTO    = -1;   // automatically compute offset of the ClientData variable
+
+// Open ConfigIndex parameter special value
+static const DWORD SIMCONNECT_OPEN_CONFIGINDEX_LOCAL   = -1;   // ignore SimConnect.cfg settings, and force local connection
 
 //----------------------------------------------------------------------------
 //        Enum definitions
@@ -81,6 +96,16 @@ enum SIMCONNECT_RECV_ID {
     SIMCONNECT_RECV_ID_CUSTOM_ACTION,
     SIMCONNECT_RECV_ID_SYSTEM_STATE,
     SIMCONNECT_RECV_ID_CLIENT_DATA,
+    SIMCONNECT_RECV_ID_EVENT_WEATHER_MODE,
+    SIMCONNECT_RECV_ID_AIRPORT_LIST,
+    SIMCONNECT_RECV_ID_VOR_LIST,
+    SIMCONNECT_RECV_ID_NDB_LIST,
+    SIMCONNECT_RECV_ID_WAYPOINT_LIST,
+    SIMCONNECT_RECV_ID_EVENT_MULTIPLAYER_SERVER_STARTED,
+    SIMCONNECT_RECV_ID_EVENT_MULTIPLAYER_CLIENT_STARTED,
+    SIMCONNECT_RECV_ID_EVENT_MULTIPLAYER_SESSION_ENDED,
+    SIMCONNECT_RECV_ID_EVENT_RACE_END,
+    SIMCONNECT_RECV_ID_EVENT_RACE_LAP,
 
 };
 
@@ -145,6 +170,12 @@ enum SIMCONNECT_EXCEPTION {
     SIMCONNECT_EXCEPTION_DUPLICATE_ID,
     SIMCONNECT_EXCEPTION_DATUM_ID,
     SIMCONNECT_EXCEPTION_OUT_OF_BOUNDS,
+    SIMCONNECT_EXCEPTION_ALREADY_CREATED,
+    SIMCONNECT_EXCEPTION_OBJECT_OUTSIDE_REALITY_BUBBLE,
+    SIMCONNECT_EXCEPTION_OBJECT_CONTAINER,
+    SIMCONNECT_EXCEPTION_OBJECT_AI,
+    SIMCONNECT_EXCEPTION_OBJECT_ATC,
+    SIMCONNECT_EXCEPTION_OBJECT_SCHEDULE,
 };
 
 // Object types
@@ -179,10 +210,81 @@ enum SIMCONNECT_MISSION_END {
     SIMCONNECT_MISSION_SUCCEEDED
 };
 
+// ClientData Request Period values
+enum SIMCONNECT_CLIENT_DATA_PERIOD {
+    SIMCONNECT_CLIENT_DATA_PERIOD_NEVER,
+    SIMCONNECT_CLIENT_DATA_PERIOD_ONCE,
+    SIMCONNECT_CLIENT_DATA_PERIOD_VISUAL_FRAME,
+    SIMCONNECT_CLIENT_DATA_PERIOD_ON_SET,
+    SIMCONNECT_CLIENT_DATA_PERIOD_SECOND,
+};
+
+enum SIMCONNECT_TEXT_TYPE {
+    SIMCONNECT_TEXT_TYPE_SCROLL_BLACK,
+    SIMCONNECT_TEXT_TYPE_SCROLL_WHITE,
+    SIMCONNECT_TEXT_TYPE_SCROLL_RED,
+    SIMCONNECT_TEXT_TYPE_SCROLL_GREEN,
+    SIMCONNECT_TEXT_TYPE_SCROLL_BLUE,
+    SIMCONNECT_TEXT_TYPE_SCROLL_YELLOW,
+    SIMCONNECT_TEXT_TYPE_SCROLL_MAGENTA,
+    SIMCONNECT_TEXT_TYPE_SCROLL_CYAN,
+    SIMCONNECT_TEXT_TYPE_PRINT_BLACK=0x0100,
+    SIMCONNECT_TEXT_TYPE_PRINT_WHITE,
+    SIMCONNECT_TEXT_TYPE_PRINT_RED,
+    SIMCONNECT_TEXT_TYPE_PRINT_GREEN,
+    SIMCONNECT_TEXT_TYPE_PRINT_BLUE,
+    SIMCONNECT_TEXT_TYPE_PRINT_YELLOW,
+    SIMCONNECT_TEXT_TYPE_PRINT_MAGENTA,
+    SIMCONNECT_TEXT_TYPE_PRINT_CYAN,
+    SIMCONNECT_TEXT_TYPE_MENU=0x0200,
+};
+
+enum SIMCONNECT_TEXT_RESULT {
+    SIMCONNECT_TEXT_RESULT_MENU_SELECT_1,
+    SIMCONNECT_TEXT_RESULT_MENU_SELECT_2,
+    SIMCONNECT_TEXT_RESULT_MENU_SELECT_3,
+    SIMCONNECT_TEXT_RESULT_MENU_SELECT_4,
+    SIMCONNECT_TEXT_RESULT_MENU_SELECT_5,
+    SIMCONNECT_TEXT_RESULT_MENU_SELECT_6,
+    SIMCONNECT_TEXT_RESULT_MENU_SELECT_7,
+    SIMCONNECT_TEXT_RESULT_MENU_SELECT_8,
+    SIMCONNECT_TEXT_RESULT_MENU_SELECT_9,
+    SIMCONNECT_TEXT_RESULT_MENU_SELECT_10,
+    SIMCONNECT_TEXT_RESULT_DISPLAYED = 0x00010000,
+    SIMCONNECT_TEXT_RESULT_QUEUED,
+    SIMCONNECT_TEXT_RESULT_REMOVED,
+    SIMCONNECT_TEXT_RESULT_REPLACED,
+    SIMCONNECT_TEXT_RESULT_TIMEOUT,
+};
+
+enum SIMCONNECT_WEATHER_MODE {
+    SIMCONNECT_WEATHER_MODE_THEME,
+    SIMCONNECT_WEATHER_MODE_RWW,
+    SIMCONNECT_WEATHER_MODE_CUSTOM,
+    SIMCONNECT_WEATHER_MODE_GLOBAL,
+};
+
+enum SIMCONNECT_FACILITY_LIST_TYPE {
+    SIMCONNECT_FACILITY_LIST_TYPE_AIRPORT,
+    SIMCONNECT_FACILITY_LIST_TYPE_WAYPOINT,
+    SIMCONNECT_FACILITY_LIST_TYPE_NDB,
+    SIMCONNECT_FACILITY_LIST_TYPE_VOR,
+    SIMCONNECT_FACILITY_LIST_TYPE_COUNT // invalid 
+};
+
+typedef DWORD SIMCONNECT_VOR_FLAGS;            // flags for SIMCONNECT_RECV_ID_VOR_LIST 
+
+    static const DWORD SIMCONNECT_RECV_ID_VOR_LIST_HAS_NAV_SIGNAL  = 0x00000001;   // Has Nav signal
+    static const DWORD SIMCONNECT_RECV_ID_VOR_LIST_HAS_LOCALIZER   = 0x00000002;   // Has localizer
+    static const DWORD SIMCONNECT_RECV_ID_VOR_LIST_HAS_GLIDE_SLOPE = 0x00000004;   // Has Nav signal
+    static const DWORD SIMCONNECT_RECV_ID_VOR_LIST_HAS_DME         = 0x00000008;   // Station has DME
+
+
+
 // bits for the Waypoint Flags field: may be combined
 typedef DWORD SIMCONNECT_WAYPOINT_FLAGS;
 
-    static const DWORD SIMCONNECT_WAYPOINT_NONE                    = 0x00;    
+    static const DWORD SIMCONNECT_WAYPOINT_NONE                    = 0x00;
     static const DWORD SIMCONNECT_WAYPOINT_SPEED_REQUESTED         = 0x04;    // requested speed at waypoint is valid
     static const DWORD SIMCONNECT_WAYPOINT_THROTTLE_REQUESTED      = 0x08;    // request a specific throttle percentage
     static const DWORD SIMCONNECT_WAYPOINT_COMPUTE_VERTICAL_SPEED  = 0x10;    // compute vertical to speed to reach waypoint altitude when crossing the waypoint
@@ -194,7 +296,7 @@ typedef DWORD SIMCONNECT_WAYPOINT_FLAGS;
 
 typedef DWORD SIMCONNECT_EVENT_FLAG;
 
-    static const DWORD SIMCONNECT_EVENT_FLAG_DEFAULT                  = 0x00000000;      
+    static const DWORD SIMCONNECT_EVENT_FLAG_DEFAULT                  = 0x00000000;
     static const DWORD SIMCONNECT_EVENT_FLAG_FAST_REPEAT_TIMER        = 0x00000001;      // set event repeat timer to simulate fast repeat
     static const DWORD SIMCONNECT_EVENT_FLAG_SLOW_REPEAT_TIMER        = 0x00000002;      // set event repeat timer to simulate slow repeat
     static const DWORD SIMCONNECT_EVENT_FLAG_GROUPID_IS_PRIORITY      = 0x00000010;      // interpret GroupID parameter as priority value
@@ -202,14 +304,14 @@ typedef DWORD SIMCONNECT_EVENT_FLAG;
 
 typedef DWORD SIMCONNECT_DATA_REQUEST_FLAG;
 
-    static const DWORD SIMCONNECT_DATA_REQUEST_FLAG_DEFAULT           = 0x00000000;      
+    static const DWORD SIMCONNECT_DATA_REQUEST_FLAG_DEFAULT           = 0x00000000;
     static const DWORD SIMCONNECT_DATA_REQUEST_FLAG_CHANGED           = 0x00000001;      // send requested data when value(s) change
     static const DWORD SIMCONNECT_DATA_REQUEST_FLAG_TAGGED            = 0x00000002;      // send requested data in tagged format
 
 
-typedef DWORD SIMCONNECT_DATA_SET_FLAG; // see SIMCONNECT_DATA_SET_FLAG_* definitions
+typedef DWORD SIMCONNECT_DATA_SET_FLAG;
 
-    static const DWORD SIMCONNECT_DATA_SET_FLAG_DEFAULT               = 0x00000000;      // data is in tagged format
+    static const DWORD SIMCONNECT_DATA_SET_FLAG_DEFAULT               = 0x00000000;
     static const DWORD SIMCONNECT_DATA_SET_FLAG_TAGGED                = 0x00000001;      // data is in tagged format
 
 
@@ -217,6 +319,19 @@ typedef DWORD SIMCONNECT_CREATE_CLIENT_DATA_FLAG;
 
     static const DWORD SIMCONNECT_CREATE_CLIENT_DATA_FLAG_DEFAULT     = 0x00000000;
     static const DWORD SIMCONNECT_CREATE_CLIENT_DATA_FLAG_READ_ONLY   = 0x00000001;      // permit only ClientData creator to write into ClientData
+
+
+typedef DWORD SIMCONNECT_CLIENT_DATA_REQUEST_FLAG;
+
+    static const DWORD SIMCONNECT_CLIENT_DATA_REQUEST_FLAG_DEFAULT    = 0x00000000;
+    static const DWORD SIMCONNECT_CLIENT_DATA_REQUEST_FLAG_CHANGED    = 0x00000001;      // send requested ClientData when value(s) change
+    static const DWORD SIMCONNECT_CLIENT_DATA_REQUEST_FLAG_TAGGED     = 0x00000002;      // send requested ClientData in tagged format
+
+
+typedef DWORD SIMCONNECT_CLIENT_DATA_SET_FLAG;
+
+    static const DWORD SIMCONNECT_CLIENT_DATA_SET_FLAG_DEFAULT        = 0x00000000;
+    static const DWORD SIMCONNECT_CLIENT_DATA_SET_FLAG_TAGGED         = 0x00000001;      // data is in tagged format
 
 
 typedef DWORD SIMCONNECT_VIEW_SYSTEM_EVENT_DATA;                  // dwData contains these flags for the "View" System Event
@@ -313,6 +428,47 @@ struct SIMCONNECT_RECV_EVENT_FRAME : public SIMCONNECT_RECV_EVENT       // when 
     float   fSimSpeed;
 };
 
+struct SIMCONNECT_RECV_EVENT_MULTIPLAYER_SERVER_STARTED : public SIMCONNECT_RECV_EVENT       // when dwID == SIMCONNECT_RECV_ID_EVENT_MULTIPLAYER_SERVER_STARTED
+{
+    // No event specific data, for now
+};
+
+struct SIMCONNECT_RECV_EVENT_MULTIPLAYER_CLIENT_STARTED : public SIMCONNECT_RECV_EVENT       // when dwID == SIMCONNECT_RECV_ID_EVENT_MULTIPLAYER_CLIENT_STARTED
+{
+    // No event specific data, for now
+};
+
+struct SIMCONNECT_RECV_EVENT_MULTIPLAYER_SESSION_ENDED : public SIMCONNECT_RECV_EVENT       // when dwID == SIMCONNECT_RECV_ID_EVENT_MULTIPLAYER_SESSION_ENDED
+{
+    // No event specific data, for now
+};
+
+// SIMCONNECT_DATA_RACE_RESULT
+struct SIMCONNECT_DATA_RACE_RESULT
+{
+    DWORD   dwNumberOfRacers;                         // The total number of racers
+    GUID MissionGUID;                      // The name of the mission to execute, NULL if no mission
+    char szPlayerName[MAX_PATH];       // The name of the player
+    char szSessionType[MAX_PATH];      // The type of the multiplayer session: "LAN", "GAMESPY")
+    char szAircraft[MAX_PATH];         // The aircraft type 
+    char szPlayerRole[MAX_PATH];       // The player role in the mission
+    double   fTotalTime;                              // Total time in seconds, 0 means DNF
+    double   fPenaltyTime;                            // Total penalty time in seconds
+    DWORD   dwIsDisqualified;                         // non 0 - disqualified, 0 - not disqualified
+};
+
+struct SIMCONNECT_RECV_EVENT_RACE_END : public SIMCONNECT_RECV_EVENT       // when dwID == SIMCONNECT_RECV_ID_EVENT_RACE_END
+{
+    DWORD   dwRacerNumber;                            // The index of the racer the results are for
+    SIMCONNECT_DATA_RACE_RESULT RacerData;
+};
+
+struct SIMCONNECT_RECV_EVENT_RACE_LAP : public SIMCONNECT_RECV_EVENT       // when dwID == SIMCONNECT_RECV_ID_EVENT_RACE_LAP
+{
+    DWORD   dwLapIndex;                               // The index of the lap the results are for
+    SIMCONNECT_DATA_RACE_RESULT RacerData;
+};
+
 struct SIMCONNECT_RECV_SIMOBJECT_DATA : public SIMCONNECT_RECV           // when dwID == SIMCONNECT_RECV_ID_SIMOBJECT_DATA
 {
     DWORD   dwRequestID;
@@ -374,6 +530,77 @@ struct SIMCONNECT_RECV_CUSTOM_ACTION : public SIMCONNECT_RECV_EVENT
     GUID guidInstanceId;      // Instance id of the action that executed
     DWORD dwWaitForCompletion;           // Wait for completion flag on the action
     char szPayLoad[1];      // Variable length string payload associated with the mission action.  
+};
+
+struct SIMCONNECT_RECV_EVENT_WEATHER_MODE : public SIMCONNECT_RECV_EVENT
+{
+    // No event specific data - the new weather mode is in the base structure dwData member.
+};
+
+// SIMCONNECT_RECV_FACILITIES_LIST
+struct SIMCONNECT_RECV_FACILITIES_LIST : public SIMCONNECT_RECV
+{
+    DWORD   dwRequestID;
+    DWORD   dwArraySize;
+    DWORD   dwEntryNumber;  // when the array of items is too big for one send, which send this is (0..dwOutOf-1)
+    DWORD   dwOutOf;        // total number of transmissions the list is chopped into
+};
+
+// SIMCONNECT_DATA_FACILITY_AIRPORT
+struct SIMCONNECT_DATA_FACILITY_AIRPORT
+{
+    char Icao[9];     // ICAO of the object
+    double  Latitude;               // degrees
+    double  Longitude;              // degrees
+    double  Altitude;               // meters   
+};
+
+// SIMCONNECT_RECV_AIRPORT_LIST
+struct SIMCONNECT_RECV_AIRPORT_LIST : public SIMCONNECT_RECV_FACILITIES_LIST
+{
+    SIMCONNECT_DATA_FACILITY_AIRPORT rgData[1];
+};
+
+
+// SIMCONNECT_DATA_FACILITY_WAYPOINT
+struct SIMCONNECT_DATA_FACILITY_WAYPOINT : public SIMCONNECT_DATA_FACILITY_AIRPORT
+{
+    float   fMagVar;                // Magvar in degrees
+};
+
+// SIMCONNECT_RECV_WAYPOINT_LIST
+struct SIMCONNECT_RECV_WAYPOINT_LIST : public SIMCONNECT_RECV_FACILITIES_LIST
+{
+    SIMCONNECT_DATA_FACILITY_WAYPOINT rgData[1];
+};
+
+// SIMCONNECT_DATA_FACILITY_NDB
+struct SIMCONNECT_DATA_FACILITY_NDB : public SIMCONNECT_DATA_FACILITY_WAYPOINT
+{
+    DWORD   fFrequency;             // frequency in Hz
+};
+
+// SIMCONNECT_RECV_NDB_LIST
+struct SIMCONNECT_RECV_NDB_LIST : public SIMCONNECT_RECV_FACILITIES_LIST
+{
+    SIMCONNECT_DATA_FACILITY_NDB rgData[1];
+};
+
+// SIMCONNECT_DATA_FACILITY_VOR
+struct SIMCONNECT_DATA_FACILITY_VOR : public SIMCONNECT_DATA_FACILITY_NDB
+{
+    DWORD   Flags;                  // SIMCONNECT_VOR_FLAGS
+    float   fLocalizer;             // Localizer in degrees
+    double  GlideLat;               // Glide Slope Location (deg, deg, meters)
+    double  GlideLon;
+    double  GlideAlt;
+    float   fGlideSlopeAngle;       // Glide Slope in degrees
+};
+
+// SIMCONNECT_RECV_VOR_LIST
+struct SIMCONNECT_RECV_VOR_LIST : public SIMCONNECT_RECV_FACILITIES_LIST
+{
+    SIMCONNECT_DATA_FACILITY_VOR rgData[1];
 };
 
 
@@ -503,13 +730,17 @@ SIMCONNECTAPI SimConnect_RequestSystemState(HANDLE hSimConnect, SIMCONNECT_DATA_
 SIMCONNECTAPI SimConnect_SetSystemState(HANDLE hSimConnect, const char * szState, DWORD dwInteger, float fFloat, const char * szString);
 SIMCONNECTAPI SimConnect_MapClientDataNameToID(HANDLE hSimConnect, const char * szClientDataName, SIMCONNECT_CLIENT_DATA_ID ClientDataID);
 SIMCONNECTAPI SimConnect_CreateClientData(HANDLE hSimConnect, SIMCONNECT_CLIENT_DATA_ID ClientDataID, DWORD dwSize, SIMCONNECT_CREATE_CLIENT_DATA_FLAG Flags);
-SIMCONNECTAPI SimConnect_AddToClientDataDefinition(HANDLE hSimConnect, SIMCONNECT_CLIENT_DATA_DEFINITION_ID DefineID, DWORD dwOffset, DWORD dwSize, DWORD dwReserved = SIMCONNECT_UNUSED);
+SIMCONNECTAPI SimConnect_AddToClientDataDefinition(HANDLE hSimConnect, SIMCONNECT_CLIENT_DATA_DEFINITION_ID DefineID, DWORD dwOffset, DWORD dwSizeOrType, float fEpsilon = 0, DWORD DatumID = SIMCONNECT_UNUSED);
 SIMCONNECTAPI SimConnect_ClearClientDataDefinition(HANDLE hSimConnect, SIMCONNECT_CLIENT_DATA_DEFINITION_ID DefineID);
-SIMCONNECTAPI SimConnect_RequestClientData(HANDLE hSimConnect, SIMCONNECT_CLIENT_DATA_ID ClientDataID, SIMCONNECT_DATA_REQUEST_ID RequestID, SIMCONNECT_CLIENT_DATA_DEFINITION_ID DefineID, DWORD dwReserved1 = SIMCONNECT_UNUSED, DWORD dwReserved2 = 0);
-SIMCONNECTAPI SimConnect_SetClientData(HANDLE hSimConnect, SIMCONNECT_CLIENT_DATA_ID ClientDataID, SIMCONNECT_CLIENT_DATA_DEFINITION_ID DefineID, DWORD dwReserved, DWORD ArrayCount, DWORD cbUnitSize, void * pDataSet);
+SIMCONNECTAPI SimConnect_RequestClientData(HANDLE hSimConnect, SIMCONNECT_CLIENT_DATA_ID ClientDataID, SIMCONNECT_DATA_REQUEST_ID RequestID, SIMCONNECT_CLIENT_DATA_DEFINITION_ID DefineID, SIMCONNECT_CLIENT_DATA_PERIOD Period = SIMCONNECT_CLIENT_DATA_PERIOD_ONCE, SIMCONNECT_CLIENT_DATA_REQUEST_FLAG Flags = 0, DWORD origin = 0, DWORD interval = 0, DWORD limit = 0);
+SIMCONNECTAPI SimConnect_SetClientData(HANDLE hSimConnect, SIMCONNECT_CLIENT_DATA_ID ClientDataID, SIMCONNECT_CLIENT_DATA_DEFINITION_ID DefineID, SIMCONNECT_CLIENT_DATA_SET_FLAG Flags, DWORD dwReserved, DWORD cbUnitSize, void * pDataSet);
 SIMCONNECTAPI SimConnect_FlightLoad(HANDLE hSimConnect, const char * szFileName);
-SIMCONNECTAPI SimConnect_FlightSave(HANDLE hSimConnect, const char * szFileName, const char * szDescription, DWORD Flags);
+SIMCONNECTAPI SimConnect_FlightSave(HANDLE hSimConnect, const char * szFileName, const char * szTitle, const char * szDescription, DWORD Flags);
 SIMCONNECTAPI SimConnect_FlightPlanLoad(HANDLE hSimConnect, const char * szFileName);
+SIMCONNECTAPI SimConnect_Text(HANDLE hSimConnect, SIMCONNECT_TEXT_TYPE type, float fTimeSeconds, SIMCONNECT_CLIENT_EVENT_ID EventID, DWORD cbUnitSize, void * pDataSet);
+SIMCONNECTAPI SimConnect_SubscribeToFacilities(HANDLE hSimConnect, SIMCONNECT_FACILITY_LIST_TYPE type, SIMCONNECT_DATA_REQUEST_ID RequestID);
+SIMCONNECTAPI SimConnect_UnsubscribeToFacilities(HANDLE hSimConnect, SIMCONNECT_FACILITY_LIST_TYPE type);
+SIMCONNECTAPI SimConnect_RequestFacilitiesList(HANDLE hSimConnect, SIMCONNECT_FACILITY_LIST_TYPE type, SIMCONNECT_DATA_REQUEST_ID RequestID);
 
 
 #endif // _SIMCONNECT_H_

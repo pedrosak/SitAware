@@ -4,7 +4,6 @@
 
 #include "stdafx.h"
 #include "targetver.h"
-#include "SimConnect.h"
 
 #include <stdio.h>
 #include <tchar.h>

@@ -3,7 +3,6 @@
 // are changed infrequently
 //
 
-#pragma once
 
 //Standard files
 #include <stdio.h>
@@ -21,11 +20,10 @@
 
 
 //Created header files
-#include "SimConnect.h"
 #include "targetver.h"
 #include "Connection.h"
 #include "Database.h"
 #include "Questions.h"
 #include "Interrogator.h"
-
+#include "SimConnect.h"
 // TODO: reference additional headers your program requires here

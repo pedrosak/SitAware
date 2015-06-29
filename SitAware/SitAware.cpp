@@ -21,14 +21,9 @@ void SitAware()
 	questionPtr = &questions;
 	interrogatorPtr = &interrogator;
 
-	//Connect to the database
-	database.Connect();
-
 	//Query the database to get the questions data
 	database.Query("*", "questions", "", questionPtr);
-
-	//Disconnect to the database
-	database.Disconnect();
+	database.~Database();
 	
 	//Connect to the FSX simconnect server
 	connection.Connect(questionPtr, interrogatorPtr);

@@ -5,7 +5,7 @@
 #include <tuple>
 #include "Questions.h"
 #include "Interrogator.h"
-
+#include "SimConnect.h"
 //Class Connection
 class Connection
 {
@@ -17,7 +17,7 @@ public:
 	static HANDLE hSimConnect;
 
 	static double fsx_result;
-	std::tuple<double, float> answer_buffer;
+	std::tuple<long, long> answer_buffer;
 	double fsx_answer_buffer;
 	double result_buffer;
 

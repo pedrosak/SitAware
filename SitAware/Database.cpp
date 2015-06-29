@@ -3,8 +3,13 @@
 
 Database::Database()
 {
+	Database::Connect();
 }
 
+Database::~Database()
+{
+	Database::Disconnect();
+}
 
 //Connects to database obj
 int Database::Connect()

@@ -23,11 +23,13 @@ private:
 	char * cmdString = new char[];
 	SAString cmdString_;
 
+	int Database::Connect();
+	int Database::Disconnect();
+
 public:
 
 	Database::Database();
-	int Database::Connect();
-	int Database::Disconnect();
+	Database::~Database();
 	int Database::Query(const char columns[], char table[], char condition[], Questions *questions);
 	int Database::getRowNumber();
 };
