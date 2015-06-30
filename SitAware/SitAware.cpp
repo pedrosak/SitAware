@@ -9,7 +9,6 @@ void SitAware()
 
 	Connection connection = Connection::Connection();	//Create connection obj
 	Database database = Database::Database();			//Create databse obj
-
 	Questions questions = Questions::Questions();		//Create question obj
 	Questions *questionPtr;								//pointer of Question type
 
@@ -21,15 +20,14 @@ void SitAware()
 	questionPtr = &questions;
 	interrogatorPtr = &interrogator;
 
+	database.Connect();
 	//Query the database to get the questions data
 	database.Query("*", "questions", "", questionPtr);
-	database.~Database();
-	
+	database.Disconnect();
+
 	//Connect to the FSX simconnect server
 	connection.Connect(questionPtr, interrogatorPtr);
 
-	//Disconnect from the FSX (not needed because Connect() alwaays disconnects when done.
-	//connection.Disconnect();
 
 }
 

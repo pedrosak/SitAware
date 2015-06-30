@@ -3,12 +3,12 @@
 
 Database::Database()
 {
-	Database::Connect();
+
 }
 
 Database::~Database()
 {
-	Database::Disconnect();
+
 }
 
 //Connects to database obj
@@ -17,9 +17,9 @@ int Database::Connect()
 	try
 	{
 		//Using Microsfot SQL Server requires to setClient outside the connect function
-		con.setClient(SA_SQLServer_Client);
+		//con.setClient(SA_SQLServer_Client);
 		//Connect to question_bank database using microsoft autheticator
-		con.Connect("PC4292\\SQLEXPRESS@question_bank", "", "");
+		con.Connect("PC4292\\SQLEXPRESS@question_bank", "", "", SA_SQLServer_Client);
 		//When connected notify the user
 		std::cout << "\nConnected to the database.\n" << std::endl;
 	}

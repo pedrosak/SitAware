@@ -27,6 +27,14 @@ struct Answer
 
 };
 
+struct Airport
+{
+	char Icao_near[9];
+	double Lat_near;
+	double Long_near;
+	double Alt_near;
+};
+
 //Data definition of client EVENTS with the SimConnect server
 static enum DATA_DEFINE_ID
 {
@@ -72,21 +80,23 @@ void Connection::Connect(Questions *questions, Interrogator *interrogator)
 			//hr = SimConnect_AddToDataDefinition(hSimConnect, DEFINITION, "Title", NULL, SIMCONNECT_DATATYPE_STRING256);
 
 			//data definition set up. This sets the FSX simulation variable to a client defined object definition (in this case enum DEFINITION is the client defined data definition)
-	/*		for (int i = 1; i <= questions->getNumberofElements(); i++)
+			for (int i = 1; i <= questions->getNumberofElements(); i++)
 			{
 				hr = SimConnect_AddToDataDefinition(Connection::hSimConnect, DEFINITION, questions->getQuestionVariable(i).c_str(), questions->getQuestionUnits(i).c_str());
-			}*/
+			}
 
-			hr = SimConnect_AddToDataDefinition(Connection::hSimConnect, DEFINITION, questions->getQuestionVariable(1).c_str(), questions->getQuestionUnits(1).c_str());
+
+			//Testing
+			//hr = SimConnect_AddToDataDefinition(Connection::hSimConnect, DEFINITION, questions->getQuestionVariable(1).c_str(), questions->getQuestionUnits(1).c_str());
 		
 
 			//Requesting  FSX event.
 			hr = SimConnect_SubscribeToSystemEvent(hSimConnect, EVENT_SIM_START, "SimStart");
 			hr = SimConnect_SubscribeToSystemEvent(hSimConnect, EVENT_SIM_STOP, "SimStop");
-			hr = SimConnect_SubscribeToSystemEvent(hSimConnect, EVENT_TIMER, "1sec");
+			hr = SimConnect_SubscribeToSystemEvent(hSimConnect, EVENT_TIMER, "4sec");
 
-			//Request a list of all the facicility of a given type currecntly held in teh facilities cache.
-			hr = SimConnect_RequestFacilitiesList(hSimConnect, SIMCONNECT_FACILITY_LIST_TYPE_AIRPORT, REQUEST_AIRPORT);
+
+
 				while (quit == 0)
 				{
 				skip_loop: if (Connection::started_flag == 1)
@@ -130,7 +140,6 @@ void Connection::Connect(Questions *questions, Interrogator *interrogator)
 
 						SimConnect_CallDispatch(Connection::hSimConnect, MyDispatchProc, NULL);
 					}
-					SimConnect_CallDispatch(Connection::hSimConnect, MyDispatchProc, NULL);
 				}
 
 			//FSX has quit,or ran out of questiosn in the database. disconnect.
@@ -204,8 +213,9 @@ void CALLBACK Connection::MyDispatchProc(SIMCONNECT_RECV * pData, DWORD cbData, 
 					if (started_flag == 1)
 					{
 						// Now the sim is running, request information on the user aircraft
-						hr = SimConnect_RequestDataOnSimObject(Connection::hSimConnect, REQUEST,0, DEFINITION, SIMCONNECT_PERIOD_ONCE);
-						//std::cout << "Event Timer" << std::endl;
+						//Request a list of all the facicility of a given type currecntly held in teh facilities cache.
+						hr = SimConnect_RequestFacilitiesList(hSimConnect, SIMCONNECT_FACILITY_LIST_TYPE_AIRPORT, REQUEST_AIRPORT);
+						std::cout << "Event Timer" << std::endl;
 
 					}
 
@@ -233,22 +243,11 @@ void CALLBACK Connection::MyDispatchProc(SIMCONNECT_RECV * pData, DWORD cbData, 
 				DWORD ObjectID = pObjData->dwObjectID;
 			
 				//Answer pointer
-				Answer *Answerptr = (Answer *)&pObjData->dwData;
+				Answer *Answerptr = (Answer *)(pObjData->dwData+1);
 
-				std::cout << Answerptr->ac_airspeed << std::endl;
-				//Connection::fsx_result = Answerptr->test_map[0];
 
 			break;
 
-			}
-			//This still needs to be tested!
-			case REQUEST_AIRPORT:
-			{
-				SIMCONNECT_DATA_FACILITY_AIRPORT * airport_list_ptr = (SIMCONNECT_DATA_FACILITY_AIRPORT *)pData;
-				Answer * answer_airport = (Answer *)&airport_list_ptr->Icao;
-				std::cout << answer_airport << std::endl;
-
-				break;
 			}
 
 			default:
@@ -257,6 +256,24 @@ void CALLBACK Connection::MyDispatchProc(SIMCONNECT_RECV * pData, DWORD cbData, 
 			break;
 		}
 
+		//This still needs to be tested!
+		case SIMCONNECT_RECV_ID_AIRPORT_LIST:
+		{
+			SIMCONNECT_RECV_AIRPORT_LIST * airport_list_ptr = (SIMCONNECT_RECV_AIRPORT_LIST *)pData;
+			printf("  Num of airports: %d Test: %c %d\n",
+				airport_list_ptr->dwArraySize, airport_list_ptr->rgData[0], airport_list_ptr->rgData[1]);
+
+			
+			for (int aa = 0; aa < (int)airport_list_ptr->dwArraySize; aa++)
+			{
+				std::cout << airport_list_ptr->rgData[aa].Icao << " " ;
+				std::cout << airport_list_ptr->rgData[aa].Longitude << " ";
+				std::cout << airport_list_ptr->rgData[aa].Latitude << " ";
+				std::cout << airport_list_ptr->rgData[aa].Altitude << std::endl;
+			}
+
+			break;
+		}
 		//Deals with quitting FSX
 		case SIMCONNECT_RECV_ID_QUIT:
 			Connection::quit = 1;
