@@ -22,11 +22,17 @@ public:
 	double result_buffer;
 
 	static int started_flag;
+	int input;		//user input for questions (1 to ask a questions)
+	long user_input_answer;	//Answer if its a nubmer integer
+	long  start_time_buffer;	//holds time of when question was asked
+	long time_buffer; //Holds value of how long it took for user to answer question
 
 	Connection::Connection();	//Constructor
-	void Connection::Connect(Questions *questions, Interrogator *interrogator);				//Initiates connection with SimConnect
+	void Connection::Connect(Questions *questions);				//Initiates connection with SimConnect
 	void Connection::Disconnect();			//Disconnects from SimConnect and cleansup
 	static void CALLBACK MyDispatchProc(SIMCONNECT_RECV * pData, DWORD cbData, void *pContext);	//Callback function to handel all the communcations with the simconnect server
 	double Connection::getAnswer();
 	void Connection::Pause();
+	clock_t Connection::startClock();
+	clock_t Connection::stopClock(long start_time);
 };

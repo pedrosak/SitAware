@@ -12,22 +12,18 @@ void SitAware()
 	Questions questions = Questions::Questions();		//Create question obj
 	Questions *questionPtr;								//pointer of Question type
 
-	Interrogator interrogator = Interrogator::Interrogator();
-	Interrogator *interrogatorPtr;
-
-
 	//assign question pointer to the question object
 	questionPtr = &questions;
-	interrogatorPtr = &interrogator;
 
+	//Connect to database
 	database.Connect();
 	//Query the database to get the questions data
 	database.Query("*", "questions", "", questionPtr);
+	//disconnect from database
 	database.Disconnect();
 
 	//Connect to the FSX simconnect server
-	connection.Connect(questionPtr, interrogatorPtr);
-
+	connection.Connect(questionPtr);
 
 }
 

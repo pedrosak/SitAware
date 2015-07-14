@@ -102,7 +102,6 @@
   <ItemGroup>
     <ClInclude Include="Connection.h" />
     <ClInclude Include="Database.h" />
-    <ClInclude Include="Interrogator.h" />
     <ClInclude Include="Questions.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="resource1.h" />
@@ -112,7 +111,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Database.cpp" />
-    <ClCompile Include="Interrogator.cpp" />
     <ClCompile Include="Questions.cpp" />
     <ClCompile Include="SitAware.cpp" />
     <ClCompile Include="Connection.cpp" />

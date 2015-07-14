@@ -56,12 +56,9 @@ Connection::Connection()
 }
 
 //Initiate connectino with SimConnect
-void Connection::Connect(Questions *questions, Interrogator *interrogator)
+void Connection::Connect(Questions *questions)
 {
 	HRESULT hr;
-	
-	//Try creating the interrogator obj here instead of passing a pointer
-	//Interrogator interrogator = Interrogator::Interrogator();
 
 	//Start a new connection when hSimConnect is still NULL, meaning, no messages from server (SimConnect) have been recieved
 	if (Connection::hSimConnect == NULL)
@@ -76,26 +73,16 @@ void Connection::Connect(Questions *questions, Interrogator *interrogator)
 			//SimConnect_Open returned S_OK
 			printf("\nConnection established with Flight Simulator X\n");
 			 
-			//data definition set up. This returnst the airplane name being used.
-			//hr = SimConnect_AddToDataDefinition(hSimConnect, DEFINITION, "Title", NULL, SIMCONNECT_DATATYPE_STRING256);
-
 			//data definition set up. This sets the FSX simulation variable to a client defined object definition (in this case enum DEFINITION is the client defined data definition)
 			for (int i = 1; i <= questions->getNumberofElements(); i++)
 			{
 				hr = SimConnect_AddToDataDefinition(Connection::hSimConnect, DEFINITION, questions->getQuestionVariable(i).c_str(), questions->getQuestionUnits(i).c_str());
 			}
 
-
-			//Testing
-			//hr = SimConnect_AddToDataDefinition(Connection::hSimConnect, DEFINITION, questions->getQuestionVariable(1).c_str(), questions->getQuestionUnits(1).c_str());
-		
-
 			//Requesting  FSX event.
 			hr = SimConnect_SubscribeToSystemEvent(hSimConnect, EVENT_SIM_START, "SimStart");
 			hr = SimConnect_SubscribeToSystemEvent(hSimConnect, EVENT_SIM_STOP, "SimStop");
 			hr = SimConnect_SubscribeToSystemEvent(hSimConnect, EVENT_TIMER, "4sec");
-
-
 
 				while (quit == 0)
 				{
@@ -105,12 +92,43 @@ void Connection::Connect(Questions *questions, Interrogator *interrogator)
 						{
 
 							//ask question and save answer to a answer buffer
-							answer_buffer = interrogator->askQuestion(questions, z);
+							//Ask user to press one to ask a questions
+							std::cout << "\nPress 1 to ask a questions: ";
+							std::cin >> input;	//read user input
+
+							//When user enters 1 (input == 1)
+							if (input == 1)
+							{
+								//display text of questions being asked
+								std::cout << questions->getQuestionText(z).c_str() << std::endl;
+								//start timer
+								start_time_buffer = Connection::startClock();
+								//write text of questions being ask onto file
+								//clear stream and wait for input
+								std::cin.clear();
+								std::cin.ignore(100, '\n');
+								//take in input and save into variable
+								std::cin >> user_input_answer;
+								//stop timer and return it
+								time_buffer = Connection::stopClock(start_time_buffer);
+								//write user input to file
+								//write time_buffer to file
+
+							}
+							//when user inputs anything besides a 1 (this MAY cause problems when expecting answer as string)
+							else if ((std::cin.fail()) || (input != 1))
+							{
+								//Notify it was incorrect entry and clear cin buffer
+								std::cout << "\nInvalid input. Try again!\n" << std::endl;
+								std::cin.clear();
+								std::cin.ignore(100, '\n');	//needed?
+							}
 
 							//Process the next SimConnect messaged recieved thorugh the spcified callback function MyDispatchProc
 							SimConnect_CallDispatch(Connection::hSimConnect, MyDispatchProc, NULL);
 
 							//calculate the difference between user answer and FSX answer
+							//getAnswer() returns answer from callDispatch FSX
 							fsx_answer_buffer = Connection::getAnswer();
 
 							result_buffer = abs(fsx_answer_buffer - std::get<0>(answer_buffer));
@@ -121,19 +139,21 @@ void Connection::Connect(Questions *questions, Interrogator *interrogator)
 							printf("\nFSX answer: %f. User answer: %f. Differance is %f. Response time: %f\n", fsx_answer_buffer,std::get<0>(answer_buffer), 
 								result_buffer, std::get<1>(answer_buffer));
 
-							//Check to see if sim flight is still happening
+							//Check to see if sim flight is still active
 							if (started_flag != 1)
 							{	
-								//If it is not happening exit out of this loop and reset the questioning session
+								//If it is not active exit out of this loop and reset the questioning session
 								goto skip_loop;
 							}
 
 							//Give time for other process to execute.
+							//needed?
 							Sleep(1);
 						}
 						//You have asked all of the questions. Let's exit the loop
 						std::cout << "\nNo more questions in the database!\n" << std::endl;
 						quit = 1;
+						SimConnect_CallDispatch(Connection::hSimConnect, MyDispatchProc, NULL);
 					}
 					else
 					{
@@ -243,8 +263,8 @@ void CALLBACK Connection::MyDispatchProc(SIMCONNECT_RECV * pData, DWORD cbData, 
 				DWORD ObjectID = pObjData->dwObjectID;
 			
 				//Answer pointer
-				Answer *Answerptr = (Answer *)(pObjData->dwData+1);
-
+				//Answer *Answerptr = (Answer *)(pObjData->dwData);
+				//Answerptr->ac_airspeed = (Answer*)(pObjData->dwData + 1);
 
 			break;
 
@@ -256,7 +276,7 @@ void CALLBACK Connection::MyDispatchProc(SIMCONNECT_RECV * pData, DWORD cbData, 
 			break;
 		}
 
-		//This still needs to be tested!
+		//Aiport return list
 		case SIMCONNECT_RECV_ID_AIRPORT_LIST:
 		{
 			SIMCONNECT_RECV_AIRPORT_LIST * airport_list_ptr = (SIMCONNECT_RECV_AIRPORT_LIST *)pData;
@@ -280,7 +300,7 @@ void CALLBACK Connection::MyDispatchProc(SIMCONNECT_RECV * pData, DWORD cbData, 
 			printf("\nFSX has been terminated.\n");
 		break;
 		
-		//Identifys that FSX is open
+		//Identify that FSX is open
 		case SIMCONNECT_RECV_ID_OPEN:
 			Connection::quit = 0;
 			std::cout << "\nFSX is currently open.\n";
@@ -303,4 +323,18 @@ void Connection::Pause()
 double Connection::getAnswer()
 {	
 	return Connection::fsx_result;
+}
+
+//Start the clock
+clock_t Connection::startClock()
+{
+	clock_t start_time = clock();
+	return start_time;
+}
+
+//(Wow wow wow) Stop the clock
+clock_t Connection::stopClock(long start_time)
+{
+	clock_t stop_time = clock();
+	return ((long)stop_time - start_time) / CLOCKS_PER_SEC;
 }
