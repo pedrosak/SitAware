@@ -19,12 +19,8 @@ static enum DATA_REQUEST_ID
 };
 
 struct Answer
- {
-	 double ac_airspeed;
-	 double ac_altitude;
-	 double ac_heading;
-	 std::string ac_up_or_down;
-
+{
+	
 };
 
 struct Airport
@@ -65,8 +61,8 @@ void Connection::Connect(Questions *questions)
 	{
 		printf("\nAttempting to connect to Flight Simulator X\n");
 
-		hr = SimConnect_Open(&Connection::hSimConnect, "Situation Awareness Questionare", NULL, 0, NULL, 0);
 		//Call SimConnect function to open a new connection.
+		hr = SimConnect_Open(&Connection::hSimConnect, "Situation Awareness Questionare", NULL, 0, NULL, 0);
 
 		if (hr == S_OK)
 		{
@@ -118,6 +114,8 @@ void Connection::Connect(Questions *questions)
 							//when user inputs anything besides a 1 (this MAY cause problems when expecting answer as string)
 							else if ((std::cin.fail()) || (input != 1))
 							{
+								//reset for counter to previews number
+								z = z - 1;
 								//Notify it was incorrect entry and clear cin buffer
 								std::cout << "\nInvalid input. Try again!\n" << std::endl;
 								std::cin.clear();
@@ -157,7 +155,6 @@ void Connection::Connect(Questions *questions)
 					}
 					else
 					{
-
 						SimConnect_CallDispatch(Connection::hSimConnect, MyDispatchProc, NULL);
 					}
 				}
@@ -266,8 +263,7 @@ void CALLBACK Connection::MyDispatchProc(SIMCONNECT_RECV * pData, DWORD cbData, 
 				//Answer *Answerptr = (Answer *)(pObjData->dwData);
 				//Answerptr->ac_airspeed = (Answer*)(pObjData->dwData + 1);
 
-			break;
-
+				break;
 			}
 
 			default:
