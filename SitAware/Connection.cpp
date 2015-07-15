@@ -5,8 +5,6 @@ unsigned int Connection::quit;
 
 HANDLE Connection::hSimConnect = NULL;
 
-double Connection::fsx_result = 0;
-
 int Connection::started_flag = 0;
 
 int z;
@@ -18,9 +16,18 @@ static enum DATA_REQUEST_ID
 	REQUEST_AIRPORT
 };
 
-struct Answer
+//Struct for a single item returned by FSX
+struct SingleAnswer
 {
-	
+	int answer_id;
+	float answer_value;
+};
+
+//Struct for tagged received data
+struct Answers
+{
+	//Room for 1000 answers
+	SingleAnswer answer[1000];
 };
 
 struct Airport
@@ -72,92 +79,76 @@ void Connection::Connect(Questions *questions)
 			//data definition set up. This sets the FSX simulation variable to a client defined object definition (in this case enum DEFINITION is the client defined data definition)
 			for (int i = 1; i <= questions->getNumberofElements(); i++)
 			{
-				hr = SimConnect_AddToDataDefinition(Connection::hSimConnect, DEFINITION, questions->getQuestionVariable(i).c_str(), questions->getQuestionUnits(i).c_str());
+				hr = SimConnect_AddToDataDefinition(Connection::hSimConnect, DEFINITION, questions->getQuestionVariable(i).c_str(), questions->getQuestionUnits(i).c_str(), SIMCONNECT_DATATYPE_FLOAT32);
 			}
 
 			//Requesting  FSX event.
 			hr = SimConnect_SubscribeToSystemEvent(hSimConnect, EVENT_SIM_START, "SimStart");
 			hr = SimConnect_SubscribeToSystemEvent(hSimConnect, EVENT_SIM_STOP, "SimStop");
-			hr = SimConnect_SubscribeToSystemEvent(hSimConnect, EVENT_TIMER, "4sec");
 
-				while (quit == 0)
+			while (quit == 0)
+			{
+			skip_loop: if (Connection::started_flag == 1)
 				{
-				skip_loop: if (Connection::started_flag == 1)
+					for(z = 1; z <= questions->getNumberofElements(); z++)
 					{
-						for(z = 1; z <= questions->getNumberofElements(); z++)
+
+						//ask question and save answer to a answer buffer
+						//Ask user to press one to ask a questions
+						std::cout << "\nPress 1 to ask a questions: ";
+						std::cin >> input;	//read user input
+
+						//When user enters 1 (input == 1)
+						if (input == 1)
 						{
+							//display text of questions being asked
+							std::cout << questions->getQuestionText(z).c_str() << std::endl;
+							//start timer
+							start_time_buffer = Connection::startClock();
+							//write text of questions being ask onto file
+							//clear stream and wait for input
+							std::cin.clear();
+							std::cin.ignore(100, '\n');
+							//take in input and save into variable
+							std::cin >> user_input_answer;
+							//stop timer and return it
+							time_buffer = Connection::stopClock(start_time_buffer);
+							//write user input to file
+							//write time_buffer to file
 
-							//ask question and save answer to a answer buffer
-							//Ask user to press one to ask a questions
-							std::cout << "\nPress 1 to ask a questions: ";
-							std::cin >> input;	//read user input
-
-							//When user enters 1 (input == 1)
-							if (input == 1)
-							{
-								//display text of questions being asked
-								std::cout << questions->getQuestionText(z).c_str() << std::endl;
-								//start timer
-								start_time_buffer = Connection::startClock();
-								//write text of questions being ask onto file
-								//clear stream and wait for input
-								std::cin.clear();
-								std::cin.ignore(100, '\n');
-								//take in input and save into variable
-								std::cin >> user_input_answer;
-								//stop timer and return it
-								time_buffer = Connection::stopClock(start_time_buffer);
-								//write user input to file
-								//write time_buffer to file
-
-							}
-							//when user inputs anything besides a 1 (this MAY cause problems when expecting answer as string)
-							else if ((std::cin.fail()) || (input != 1))
-							{
-								//reset for counter to previews number
-								z = z - 1;
-								//Notify it was incorrect entry and clear cin buffer
-								std::cout << "\nInvalid input. Try again!\n" << std::endl;
-								std::cin.clear();
-								std::cin.ignore(100, '\n');	//needed?
-							}
-
-							//Process the next SimConnect messaged recieved thorugh the spcified callback function MyDispatchProc
-							SimConnect_CallDispatch(Connection::hSimConnect, MyDispatchProc, NULL);
-
-							//calculate the difference between user answer and FSX answer
-							//getAnswer() returns answer from callDispatch FSX
-							fsx_answer_buffer = Connection::getAnswer();
-
-							result_buffer = abs(fsx_answer_buffer - std::get<0>(answer_buffer));
-
-							//Check if the result_buffer of current questions is within the correct range (check to see if answer is correct)
-							//If answer is correct calculate the running differance.
-
-							printf("\nFSX answer: %f. User answer: %f. Differance is %f. Response time: %f\n", fsx_answer_buffer,std::get<0>(answer_buffer), 
-								result_buffer, std::get<1>(answer_buffer));
-
-							//Check to see if sim flight is still active
-							if (started_flag != 1)
-							{	
-								//If it is not active exit out of this loop and reset the questioning session
-								goto skip_loop;
-							}
-
-							//Give time for other process to execute.
-							//needed?
-							Sleep(1);
 						}
-						//You have asked all of the questions. Let's exit the loop
-						std::cout << "\nNo more questions in the database!\n" << std::endl;
-						quit = 1;
+						//when user inputs anything besides a 1 (this MAY cause problems when expecting answer as string)
+						else if ((std::cin.fail()) || (input != 1))
+						{
+							//reset for counter to previews number
+							z = z - 1;
+							//Notify it was incorrect entry and clear cin buffer
+							std::cout << "\nInvalid input. Try again!\n" << std::endl;
+							std::cin.clear();
+							std::cin.ignore(100, '\n');	//needed?
+						}
+
+						//Process the next SimConnect messaged recieved thorugh the spcified callback function MyDispatchProc
 						SimConnect_CallDispatch(Connection::hSimConnect, MyDispatchProc, NULL);
+
+						//Check to see if sim flight is still active
+						if (started_flag != 1)
+						{	
+							//If it is not active exit out of this loop and reset the questioning session
+							goto skip_loop;
+						}
+
 					}
-					else
-					{
-						SimConnect_CallDispatch(Connection::hSimConnect, MyDispatchProc, NULL);
-					}
+					//You have asked all of the questions. Let's exit the loop
+					std::cout << "\nNo more questions in the database!\n" << std::endl;
+					quit = 1;
+					SimConnect_CallDispatch(Connection::hSimConnect, MyDispatchProc, NULL);
 				}
+				else
+				{
+					SimConnect_CallDispatch(Connection::hSimConnect, MyDispatchProc, NULL);
+				}
+			}
 
 			//FSX has quit,or ran out of questiosn in the database. disconnect.
 			Connection::Disconnect();
@@ -211,32 +202,21 @@ void CALLBACK Connection::MyDispatchProc(SIMCONNECT_RECV * pData, DWORD cbData, 
 			switch (evt->uEventID)
 			{
 				case EVENT_SIM_START:
-
+				{
 					// Now the sim is running, request information on the user aircraft
-					hr = SimConnect_RequestDataOnSimObject(Connection::hSimConnect, REQUEST, DEFINITION,0, SIMCONNECT_PERIOD_ONCE);
-					//std::cout << "Event Sim Start" << std::endl;
+					//Calls for data everysecond but only if the data has changed and only the data that changed.
+					hr = SimConnect_RequestDataOnSimObject(Connection::hSimConnect, REQUEST, DEFINITION, SIMCONNECT_OBJECT_ID_USER, SIMCONNECT_PERIOD_SECOND,
+						SIMCONNECT_DATA_REQUEST_FLAG_CHANGED | SIMCONNECT_DATA_REQUEST_FLAG_TAGGED);
 					started_flag = 1;
 
 					break;
+				}
 				case EVENT_SIM_STOP:
-
+				{
 					//Sim stopped running. Restart the questions.
 					started_flag = 0;
 					z = 1;
-					std::cout << "Event Sim Stop" << std::endl;
 					break;
-				case EVENT_TIMER:
-				{
-					if (started_flag == 1)
-					{
-						// Now the sim is running, request information on the user aircraft
-						//Request a list of all the facicility of a given type currecntly held in teh facilities cache.
-						hr = SimConnect_RequestFacilitiesList(hSimConnect, SIMCONNECT_FACILITY_LIST_TYPE_AIRPORT, REQUEST_AIRPORT);
-						std::cout << "Event Timer" << std::endl;
-
-					}
-
-				break;
 				}
 
 				default:
@@ -249,25 +229,24 @@ void CALLBACK Connection::MyDispatchProc(SIMCONNECT_RECV * pData, DWORD cbData, 
 		case SIMCONNECT_RECV_ID_SIMOBJECT_DATA:
 		{
 			//Simobject pointer
-			SIMCONNECT_RECV_SIMOBJECT_DATA_BYTYPE *pObjData = (SIMCONNECT_RECV_SIMOBJECT_DATA_BYTYPE *)pData;
+			SIMCONNECT_RECV_SIMOBJECT_DATA *pObjData = (SIMCONNECT_RECV_SIMOBJECT_DATA *)pData;
 
 			switch (pObjData->dwRequestID)
 			{
 			//Object requested by client
-			case REQUEST:
-			{
-				//Server defined object id
-				DWORD ObjectID = pObjData->dwObjectID;
-			
-				//Answer pointer
-				//Answer *Answerptr = (Answer *)(pObjData->dwData);
-				//Answerptr->ac_airspeed = (Answer*)(pObjData->dwData + 1);
+				case REQUEST:
+				{
+					Answers *pS = (Answers *)&pObjData->dwData;
 
-				break;
-			}
+					std::cout << pS->answer[0].answer_value << std::endl;
+					std::cout << pS->answer[1].answer_value << std::endl;
+					std::cout << pS->answer[2].answer_value << std::endl;
 
-			default:
-				break;
+					break;
+				}
+
+				default:
+					break;
 			}
 			break;
 		}
@@ -316,11 +295,6 @@ void Connection::Pause()
 	std::cin.ignore();	//Dont store any input by the user.
 }
 
-double Connection::getAnswer()
-{	
-	return Connection::fsx_result;
-}
-
 //Start the clock
 clock_t Connection::startClock()
 {
@@ -329,8 +303,7 @@ clock_t Connection::startClock()
 }
 
 //(Wow wow wow) Stop the clock
-clock_t Connection::stopClock(long start_time)
+clock_t Connection::stopClock(float start_time)
 {
-	clock_t stop_time = clock();
-	return ((long)stop_time - start_time) / CLOCKS_PER_SEC;
+	return (((float)clock() - start_time)/CLOCKS_PER_SEC);
 }
