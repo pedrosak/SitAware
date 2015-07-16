@@ -11,27 +11,30 @@ class Connection
 {
 public:
 
-	//Variable used to notifie that FSX has quit
-	static unsigned int quit;
-	//Variables used with Simconnect
-	static HANDLE hSimConnect;
+	//Variables
+	static unsigned int quit; //Variable used to notifie that FSX has quit
+	static HANDLE hSimConnect;	//Variables used with Simconnect
 
-	std::tuple<long, long> answer_buffer;
-	double fsx_answer_buffer;
-	double result_buffer;
+	//Answer and question buffer variables
+	static float fsx_answer_buffer;	//FSX fetched answer
+	float result_buffer;		//calculation of user and fsx answer
+	float user_input_answer;	//User input answer
 
-	static int started_flag;
 	int input;		//user input for questions (1 to ask a questions)
-	float user_input_answer;	//Answer if its a nubmer integer
+
+	//Clock timer variables
 	float  start_time_buffer;	//holds time of when question was asked
 	float time_buffer; //Holds value of how long it took for user to answer question
 
+	static int started_flag;	//Flag to control initiation of FSX simulation
+
+	//Functions
 	Connection::Connection();	//Constructor
 	void Connection::Connect(Questions *questions);				//Initiates connection with SimConnect
 	void Connection::Disconnect();			//Disconnects from SimConnect and cleansup
 	static void CALLBACK MyDispatchProc(SIMCONNECT_RECV * pData, DWORD cbData, void *pContext);	//Callback function to handel all the communcations with the simconnect server
-	double Connection::getAnswer();
+	float Connection::getAnswer();
 	void Connection::Pause();
-	clock_t Connection::startClock();
-	clock_t Connection::stopClock(float start_time);
+	float Connection::startClock();
+	float Connection::stopClock(float start_time);
 };

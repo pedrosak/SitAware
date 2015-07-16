@@ -16,6 +16,8 @@ private:
 	const int WAV_COLUMN_POSITION = 3;
 	const int VARIABLE_COLUMN_POSITION = 4;
 	const int UNITS_COLUMN_POSITION = 5;
+	const int CLIENT_NAME_COLUMN_POSITION = 6;
+	const int VARIABLE_CHANGE = 7;
 
 	int row_count;
 

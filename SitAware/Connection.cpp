@@ -7,6 +7,8 @@ HANDLE Connection::hSimConnect = NULL;
 
 int Connection::started_flag = 0;
 
+float Connection::fsx_answer_buffer = 0;
+
 int z;
 
 //Data definition for requests sent to SImConnect
@@ -26,7 +28,7 @@ struct SingleAnswer
 //Struct for tagged received data
 struct Answers
 {
-	//Room for 1000 answers
+	//Memory space for 1000 answers
 	SingleAnswer answer[1000];
 };
 
@@ -55,7 +57,7 @@ static enum EVENT_ID
 //Constructor. Defines HANDLE variable
 Connection::Connection()
 {
-
+	//Future versions use constructor and destructor to connect and disconnect to FSX
 }
 
 //Initiate connectino with SimConnect
@@ -79,7 +81,9 @@ void Connection::Connect(Questions *questions)
 			//data definition set up. This sets the FSX simulation variable to a client defined object definition (in this case enum DEFINITION is the client defined data definition)
 			for (int i = 1; i <= questions->getNumberofElements(); i++)
 			{
-				hr = SimConnect_AddToDataDefinition(Connection::hSimConnect, DEFINITION, questions->getQuestionVariable(i).c_str(), questions->getQuestionUnits(i).c_str(), SIMCONNECT_DATATYPE_FLOAT32);
+
+				hr = SimConnect_AddToDataDefinition(Connection::hSimConnect, DEFINITION, questions->getQuestionVariable(i).c_str(), questions->getQuestionUnits(i).c_str(), SIMCONNECT_DATATYPE_FLOAT32, 
+					std::stof(questions->getVariableChange(i)));
 			}
 
 			//Requesting  FSX event.
@@ -106,6 +110,7 @@ void Connection::Connect(Questions *questions)
 							//start timer
 							start_time_buffer = Connection::startClock();
 							//write text of questions being ask onto file
+
 							//clear stream and wait for input
 							std::cin.clear();
 							std::cin.ignore(100, '\n');
@@ -113,6 +118,7 @@ void Connection::Connect(Questions *questions)
 							std::cin >> user_input_answer;
 							//stop timer and return it
 							time_buffer = Connection::stopClock(start_time_buffer);
+
 							//write user input to file
 							//write time_buffer to file
 
@@ -130,6 +136,18 @@ void Connection::Connect(Questions *questions)
 
 						//Process the next SimConnect messaged recieved thorugh the spcified callback function MyDispatchProc
 						SimConnect_CallDispatch(Connection::hSimConnect, MyDispatchProc, NULL);
+
+						//Calculate answer different
+						result_buffer = abs(user_input_answer - Connection::getAnswer());
+						
+						if (result_buffer > std::stof(questions->getVariableChange(z)))
+						{
+							//incorrect answer
+							//count how many incorrect answer were provided
+							//if this is the second incorrect answer
+						}
+						std::cout << result_buffer << std::endl;
+						std::cout << time_buffer << std::endl;
 
 						//Check to see if sim flight is still active
 						if (started_flag != 1)
@@ -238,9 +256,7 @@ void CALLBACK Connection::MyDispatchProc(SIMCONNECT_RECV * pData, DWORD cbData, 
 				{
 					Answers *pS = (Answers *)&pObjData->dwData;
 
-					std::cout << pS->answer[0].answer_value << std::endl;
-					std::cout << pS->answer[1].answer_value << std::endl;
-					std::cout << pS->answer[2].answer_value << std::endl;
+					Connection::fsx_answer_buffer = pS->answer[z - 1].answer_value;
 
 					break;
 				}
@@ -296,14 +312,19 @@ void Connection::Pause()
 }
 
 //Start the clock
-clock_t Connection::startClock()
+float Connection::startClock()
 {
-	clock_t start_time = clock();
+	float start_time = clock();
 	return start_time;
 }
 
 //(Wow wow wow) Stop the clock
-clock_t Connection::stopClock(float start_time)
+float Connection::stopClock(float start_time)
 {
 	return (((float)clock() - start_time)/CLOCKS_PER_SEC);
+}
+
+float Connection::getAnswer()
+{
+	return Connection::fsx_answer_buffer;
 }

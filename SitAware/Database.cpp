@@ -130,6 +130,10 @@ int Database::Query(const char columns[], char table[], char condition[], Questi
 			questions->storeQuestionVariable(row_count, (const char *)cmd.Field(VARIABLE_COLUMN_POSITION).asString());
 			//Store variable by reading column UNITS_COLUMN_POSITION
 			questions->storeQuestionUnits(row_count, (const char *)cmd.Field(UNITS_COLUMN_POSITION).asString());
+			//Stor client name by reading colume CLIENT_NAME
+			questions->storeClientName(row_count, (const char *)cmd.Field(CLIENT_NAME_COLUMN_POSITION).asString());
+			//Stor client name by reading colume VARIABLE_CHANGE
+			questions->storeVariableChange(row_count, (const char *)cmd.Field(VARIABLE_CHANGE).asString());
 
 			//Increase row count variable 
 			row_count++;

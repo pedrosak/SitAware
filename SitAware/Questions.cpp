@@ -32,6 +32,20 @@ void Questions::storeQuestionUnits(int number, std::string value)
 	Questions::question_units.insert(std::pair<int, std::string>(number, value));
 }
 
+//Store the value of the client name  for each questions in database
+void Questions::storeClientName(int number, std::string value)
+{
+	//Using the map variable to store the values of variable unit for each questions
+	Questions::client_name.insert(std::pair<int, std::string>(number, value));
+}
+
+//Store the value of the variable change for each questions in database
+void Questions::storeVariableChange(int number, std::string value)
+{
+	//Using the map variable to store the values of variable unit for each questions
+	Questions::variable_change.insert(std::pair<int, std::string>(number, value));
+}
+
 //Returns the value of text for specific question number
 std::string Questions::getQuestionText(int number)
 {
@@ -56,6 +70,22 @@ std::string Questions::getQuestionUnits(int number)
 	//std::cout << question_units[1].c_str() << std::endl;
 
 	return Questions::question_units[number];
+}
+
+//Returns the value of the clien name unit for a specific question
+std::string Questions::getClientName(int number)
+{
+	//std::cout << question_units[1].c_str() << std::endl;
+
+	return Questions::client_name[number];
+}
+
+//Returns the value of the variable change unit for a specific question
+std::string Questions::getVariableChange(int number)
+{
+	//std::cout << question_units[1].c_str() << std::endl;
+
+	return Questions::variable_change[number];
 }
 
 //Return how many members in the map questions
