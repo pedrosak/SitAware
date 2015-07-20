@@ -82,8 +82,7 @@ void Connection::Connect(Questions *questions)
 			for (int i = 1; i <= questions->getNumberofElements(); i++)
 			{
 
-				hr = SimConnect_AddToDataDefinition(Connection::hSimConnect, DEFINITION, questions->getQuestionVariable(i).c_str(), questions->getQuestionUnits(i).c_str(), SIMCONNECT_DATATYPE_FLOAT32, 
-					std::stof(questions->getVariableChange(i)));
+				hr = SimConnect_AddToDataDefinition(Connection::hSimConnect, DEFINITION, questions->getQuestionVariable(i).c_str(), questions->getQuestionUnits(i).c_str(), SIMCONNECT_DATATYPE_FLOAT32);
 			}
 
 			//Requesting  FSX event.
@@ -92,74 +91,84 @@ void Connection::Connect(Questions *questions)
 
 			while (quit == 0)
 			{
-			skip_loop: if (Connection::started_flag == 1)
+				skip_loop: if (Connection::started_flag == 1)
 				{
-					for(z = 1; z <= questions->getNumberofElements(); z++)
+					//ask question and save answer to a answer buffer
+					//Ask user to press one to ask a questions
+					std::cout << "\nPress 1 to ask a questions or 'Q' to quit: ";
+					std::getline(std::cin, input_string);	//read user input
+
+					//When user enters 1 (input == 1)
+					if (input_string == "1")
 					{
+						//Pick a random questions from database
+						z = rand() % questions->getNumberofElements() + 1;
+						//display text of questions being asked
+						std::cout << questions->getQuestionText(z).c_str() << std::endl;
+						//start timer
+						start_time_buffer = Connection::startClock();
+						//write text of questions being ask onto file
 
-						//ask question and save answer to a answer buffer
-						//Ask user to press one to ask a questions
-						std::cout << "\nPress 1 to ask a questions: ";
-						std::cin >> input;	//read user input
+						//take in input and save into variable
+						std::getline(std::cin, input_string);	//read user input
+						//stop timer and return it
+						time_buffer = Connection::stopClock(start_time_buffer);
 
-						//When user enters 1 (input == 1)
-						if (input == 1)
-						{
-							//display text of questions being asked
-							std::cout << questions->getQuestionText(z).c_str() << std::endl;
-							//start timer
-							start_time_buffer = Connection::startClock();
-							//write text of questions being ask onto file
+						//write user input to file
+						//write time_buffer to file
 
-							//clear stream and wait for input
-							std::cin.clear();
-							std::cin.ignore(100, '\n');
-							//take in input and save into variable
-							std::cin >> user_input_answer;
-							//stop timer and return it
-							time_buffer = Connection::stopClock(start_time_buffer);
-
-							//write user input to file
-							//write time_buffer to file
-
-						}
-						//when user inputs anything besides a 1 (this MAY cause problems when expecting answer as string)
-						else if ((std::cin.fail()) || (input != 1))
-						{
-							//reset for counter to previews number
-							z = z - 1;
-							//Notify it was incorrect entry and clear cin buffer
-							std::cout << "\nInvalid input. Try again!\n" << std::endl;
-							std::cin.clear();
-							std::cin.ignore(100, '\n');	//needed?
-						}
 
 						//Process the next SimConnect messaged recieved thorugh the spcified callback function MyDispatchProc
 						SimConnect_CallDispatch(Connection::hSimConnect, MyDispatchProc, NULL);
 
+						//std::cout << Connection::getAnswer() << " answer from FSX" << std::endl;
+
 						//Calculate answer different
-						result_buffer = abs(user_input_answer - Connection::getAnswer());
-						
+						result_buffer = abs(std::stof(input_string) - Connection::getAnswer());
+
+						//std::cout << result_buffer << " result calculations." << std::endl;
+						//std::cout << time_buffer << " time elapsed." << std::endl;
+
+						//std::cout << questions->getVariableChange(z) << " variable change." << std::endl;
+						//std::cout << result_buffer << " result buffer." << std::endl;
+
 						if (result_buffer > std::stof(questions->getVariableChange(z)))
 						{
 							//incorrect answer
+							std::cout << "\nIncorrect Answer." << std::endl;
+
 							//count how many incorrect answer were provided
+							incorrect_count = incorrect_count + 1;
+
 							//if this is the second incorrect answer
+							if (incorrect_count >= 2)
+							{
+								//Make a suggestion
+								std::cout << "\n** SUGGESTION **" << std::endl;
+								//reset incorrect_count back to 0
+								incorrect_count = 0;
+								//write to file
+							}
 						}
-						std::cout << result_buffer << std::endl;
-						std::cout << time_buffer << std::endl;
-
-						//Check to see if sim flight is still active
-						if (started_flag != 1)
-						{	
-							//If it is not active exit out of this loop and reset the questioning session
-							goto skip_loop;
-						}
-
 					}
-					//You have asked all of the questions. Let's exit the loop
-					std::cout << "\nNo more questions in the database!\n" << std::endl;
-					quit = 1;
+					//when user inputs anything besides a 1 (this MAY cause problems when expecting answer as string)
+					else if (input_string == "Q")
+					{
+						quit = 1;
+					}
+					else
+					{
+						//Notify it was incorrect entry and clear cin buffer
+						std::cout << "\nInvalid input. Try again!\n" << std::endl;
+					}
+
+					//Check to see if sim flight is still active
+					if (started_flag != 1)
+					{	
+						//If it is not active exit out of this loop and reset the questioning session
+						goto skip_loop;
+					}
+
 					SimConnect_CallDispatch(Connection::hSimConnect, MyDispatchProc, NULL);
 				}
 				else

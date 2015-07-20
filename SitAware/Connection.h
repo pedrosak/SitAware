@@ -19,8 +19,9 @@ public:
 	static float fsx_answer_buffer;	//FSX fetched answer
 	float result_buffer;		//calculation of user and fsx answer
 	float user_input_answer;	//User input answer
+	int incorrect_count = 0;		//counts how many incorrect answer 
 
-	int input;		//user input for questions (1 to ask a questions)
+	std::string input_string;		//user input for questions (1 to ask a questions)
 
 	//Clock timer variables
 	float  start_time_buffer;	//holds time of when question was asked
