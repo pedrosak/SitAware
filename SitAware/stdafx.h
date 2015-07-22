@@ -17,8 +17,8 @@
 #include <SQLAPI.h>
 #include <memory>
 #include <fstream>
-
-
+#include <time.h>
+#include <mmsystem.h>
 
 //Created header files
 #include "targetver.h"

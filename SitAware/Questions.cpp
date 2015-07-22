@@ -14,6 +14,7 @@ void Questions::storeQuestionText(int number, std::string value)
 //Store the value of the directory for the wav file for each questions in database
 void Questions::storeQuestionWav(int number, std::string value)
 {
+
 	//Using the map variable to store the values of directory that holds the wave file for each questions
 	Questions::question_wav.insert(std::pair<int, std::string>(number, value));
 }

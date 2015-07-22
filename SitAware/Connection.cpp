@@ -61,7 +61,7 @@ Connection::Connection()
 }
 
 //Initiate connectino with SimConnect
-void Connection::Connect(Questions *questions)
+void Connection::Connect(Questions *questions, std::string file_name)
 {
 	HRESULT hr;
 
@@ -101,21 +101,47 @@ void Connection::Connect(Questions *questions)
 					//When user enters 1 (input == 1)
 					if (input_string == "1")
 					{
+						//Counter to count how many questios have been asked
+						number_questions_asked += 1;
+
+						//Write time stamp to file and questions number
+						std::ofstream ofs;
+						if (!ofs.is_open())
+						{
+							ofs.open(file_name, std::ofstream::app);
+						}
+
 						//Pick a random questions from database
 						z = rand() % questions->getNumberofElements() + 1;
+
+						//play wav of question in databaseth;
+						//PlaySound((LPCWSTR)questions->getQuestionWav(z), NULL, SND_ASYNC | SND_FILENAME);
+
 						//display text of questions being asked
-						std::cout << questions->getQuestionText(z).c_str() << std::endl;
+						invalid_input_loop: std::cout << questions->getQuestionText(z).c_str() << std::endl;
 						//start timer
 						start_time_buffer = Connection::startClock();
+
 						//write text of questions being ask onto file
+						ofs << Connection::localTime();
+						ofs << "Questions number: " << number_questions_asked << ". " << questions->getQuestionText(z).c_str() << std::endl;
 
 						//take in input and save into variable
 						std::getline(std::cin, input_string);	//read user input
+						if (std::cin.fail())
+						{
+							std::cout << "Invalid input. Try again.";
+							std::cin.clear();
+							std::cin.ignore(256, '\n');
+							goto invalid_input_loop;
+						}
 						//stop timer and return it
 						time_buffer = Connection::stopClock(start_time_buffer);
 
 						//write user input to file
+						ofs << "User input: " << input_string;
 						//write time_buffer to file
+						ofs << " Answered in " << time_buffer << " seconds." << std::endl;
 
 
 						//Process the next SimConnect messaged recieved thorugh the spcified callback function MyDispatchProc
@@ -135,6 +161,7 @@ void Connection::Connect(Questions *questions)
 						if (result_buffer > std::stof(questions->getVariableChange(z)))
 						{
 							//incorrect answer
+							ofs << "Incorrect answer number " << incorrect_count + 1 << ". FSX result was " << Connection::getAnswer() << ". Difference in answers " << result_buffer << std::endl;
 							std::cout << "\nIncorrect Answer." << std::endl;
 
 							//count how many incorrect answer were provided
@@ -145,14 +172,22 @@ void Connection::Connect(Questions *questions)
 							{
 								//Make a suggestion
 								std::cout << "\n** SUGGESTION **" << std::endl;
+								ofs << "**Suggestion was made.**" << std::endl;
 								//reset incorrect_count back to 0
 								incorrect_count = 0;
 								//write to file
 							}
 						}
+						else
+						{
+							ofs << "Correct answer. FSX result was " << Connection::getAnswer() << ". Difference in answers was " << result_buffer << std::endl;
+						}
+
+						ofs << "\n\n";
+						ofs.close();
 					}
 					//when user inputs anything besides a 1 (this MAY cause problems when expecting answer as string)
-					else if (input_string == "Q")
+					else if (input_string == "Q" || input_string == "q")
 					{
 						quit = 1;
 					}
@@ -336,4 +371,15 @@ float Connection::stopClock(float start_time)
 float Connection::getAnswer()
 {
 	return Connection::fsx_answer_buffer;
+}
+
+std::string Connection::localTime()
+{
+	time_t rawtime;
+	struct tm * timeinfo;
+
+	time(&rawtime);
+	timeinfo = localtime(&rawtime);
+	
+	return asctime(timeinfo);
 }

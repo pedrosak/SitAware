@@ -20,6 +20,7 @@ public:
 	float result_buffer;		//calculation of user and fsx answer
 	float user_input_answer;	//User input answer
 	int incorrect_count = 0;		//counts how many incorrect answer 
+	int number_questions_asked = 0;
 
 	std::string input_string;		//user input for questions (1 to ask a questions)
 
@@ -31,11 +32,12 @@ public:
 
 	//Functions
 	Connection::Connection();	//Constructor
-	void Connection::Connect(Questions *questions);				//Initiates connection with SimConnect
+	void Connection::Connect(Questions *questions, std::string file_name);				//Initiates connection with SimConnect
 	void Connection::Disconnect();			//Disconnects from SimConnect and cleansup
 	static void CALLBACK MyDispatchProc(SIMCONNECT_RECV * pData, DWORD cbData, void *pContext);	//Callback function to handel all the communcations with the simconnect server
 	float Connection::getAnswer();
 	void Connection::Pause();
 	float Connection::startClock();
 	float Connection::stopClock(float start_time);
+	std::string Connection::localTime();
 };
