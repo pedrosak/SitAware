@@ -115,8 +115,9 @@ void Connection::Connect(Questions *questions, std::string file_name)
 						z = rand() % questions->getNumberofElements() + 1;
 
 						//play wav of question in databaseth;
-						//PlaySound((LPCWSTR)questions->getQuestionWav(z), NULL, SND_ASYNC | SND_FILENAME);
-
+						//PlaySound(TEXT("C:\\Users\\Elite\\Desktop\\test.wav"), NULL, SND_ASYNC | SND_FILENAME);
+						//PlaySound((LPCWSTR)questions->getQuestionWav(z).c_str(), NULL, SND_ASYNC | SND_FILENAME);
+				
 						//display text of questions being asked
 						invalid_input_loop: std::cout << questions->getQuestionText(z).c_str() << std::endl;
 						//start timer
@@ -152,6 +153,40 @@ void Connection::Connect(Questions *questions, std::string file_name)
 						//Calculate answer different
 						result_buffer = abs(std::stof(input_string) - Connection::getAnswer());
 
+						//sum all the response times
+						time_buffer_sum = time_buffer_sum + time_buffer;
+
+						//get the time_buffer average
+						new_time_average = time_buffer_sum / number_questions_asked;
+
+						//Check to see if the current average and the new average has doubled
+						if ((number_questions_asked > 1) && (new_time_average > (2 * old_time_average)))
+						{
+							average_increase_multiplier = roundf((new_time_average / old_time_average)/100);
+							ofs << "Average response time  increase by a factor of " <<  average_increase_multiplier << ". The previews average was " << old_time_average << " and the new average is " << new_time_average << "." << std::endl;
+							incorrect_count_time += 1;
+
+							if (incorrect_count_time >=2)
+							{
+								//Average response time increase twice. Make suggestion
+								//Make a suggestion
+								std::cout << "\n** SUGGESTION **" << std::endl;
+								ofs << "**Suggestion was made.**" << std::endl;
+								//increase suggestions count
+								suggestion_count += 1;
+							}
+						}
+						else if ((number_questions_asked > 1) && (new_time_average < (old_time_average)))
+						{
+							improvement_count += 1;
+							if ((improvement_count > 2) && suggestion_count >= 1)
+							{
+								//Improvement is being shown
+								ofs << "Improving answer reaction time. Suggest to increase automation." << std::endl;
+							}
+						}
+
+						//see if the average has doubled.
 						//std::cout << result_buffer << " result calculations." << std::endl;
 						//std::cout << time_buffer << " time elapsed." << std::endl;
 
@@ -161,21 +196,22 @@ void Connection::Connect(Questions *questions, std::string file_name)
 						if (result_buffer > std::stof(questions->getVariableChange(z)))
 						{
 							//incorrect answer
-							ofs << "Incorrect answer number " << incorrect_count + 1 << ". FSX result was " << Connection::getAnswer() << ". Difference in answers " << result_buffer << std::endl;
+							ofs << "Incorrect answer number " << incorrect_count_error + 1 << ". FSX result was " << Connection::getAnswer() << ". Difference in answers " << result_buffer << std::endl;
 							std::cout << "\nIncorrect Answer." << std::endl;
 
 							//count how many incorrect answer were provided
-							incorrect_count = incorrect_count + 1;
+							incorrect_count_error = incorrect_count_error + 1;
 
 							//if this is the second incorrect answer
-							if (incorrect_count >= 2)
+							if (incorrect_count_error >= 2)
 							{
 								//Make a suggestion
 								std::cout << "\n** SUGGESTION **" << std::endl;
 								ofs << "**Suggestion was made.**" << std::endl;
+								//increase suggestions count
+								suggestion_count += 1;
 								//reset incorrect_count back to 0
-								incorrect_count = 0;
-								//write to file
+								incorrect_count_error = 0;
 							}
 						}
 						else
