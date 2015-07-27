@@ -101,6 +101,7 @@ void Connection::Connect(Questions *questions, std::string file_name)
 					//When user enters 1 (input == 1)
 					if (input_string == "1")
 					{
+						old_time_average = new_time_average;
 						//Counter to count how many questios have been asked
 						number_questions_asked += 1;
 
@@ -159,10 +160,12 @@ void Connection::Connect(Questions *questions, std::string file_name)
 						//get the time_buffer average
 						new_time_average = time_buffer_sum / number_questions_asked;
 
+						std::cout << new_time_average << " new. " << old_time_average << " old." << std::endl;
+
 						//Check to see if the current average and the new average has doubled
 						if ((number_questions_asked > 1) && (new_time_average > (2 * old_time_average)))
 						{
-							average_increase_multiplier = roundf((new_time_average / old_time_average)/100);
+							average_increase_multiplier = roundf((new_time_average / old_time_average));
 							ofs << "Average response time  increase by a factor of " <<  average_increase_multiplier << ". The previews average was " << old_time_average << " and the new average is " << new_time_average << "." << std::endl;
 							incorrect_count_time += 1;
 
@@ -170,7 +173,7 @@ void Connection::Connect(Questions *questions, std::string file_name)
 							{
 								//Average response time increase twice. Make suggestion
 								//Make a suggestion
-								std::cout << "\n** SUGGESTION **" << std::endl;
+								std::cout << "\n** SUGGESTION 1 - Decrease automation**" << std::endl;
 								ofs << "**Suggestion was made.**" << std::endl;
 								//increase suggestions count
 								suggestion_count += 1;
@@ -183,6 +186,7 @@ void Connection::Connect(Questions *questions, std::string file_name)
 							{
 								//Improvement is being shown
 								ofs << "Improving answer reaction time. Suggest to increase automation." << std::endl;
+								std::cout << "\n** SUGGESTION 2 - Increase automation **" << std::endl;
 							}
 						}
 
@@ -206,7 +210,7 @@ void Connection::Connect(Questions *questions, std::string file_name)
 							if (incorrect_count_error >= 2)
 							{
 								//Make a suggestion
-								std::cout << "\n** SUGGESTION **" << std::endl;
+								std::cout << "\n** SUGGESTION 1 - Decrease automation**" << std::endl;
 								ofs << "**Suggestion was made.**" << std::endl;
 								//increase suggestions count
 								suggestion_count += 1;
