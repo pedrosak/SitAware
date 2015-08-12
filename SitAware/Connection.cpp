@@ -179,6 +179,7 @@ void Connection::Connect(Questions *questions, std::string file_name)
 						{
 							fsx_calculated_answer = Connection::getAnswer();
 						}
+
 						//Calculate answer different
 						result_buffer = abs(std::stof(input_string) - fsx_calculated_answer);
 
@@ -188,7 +189,7 @@ void Connection::Connect(Questions *questions, std::string file_name)
 						//get the time_buffer average
 						new_time_average = time_buffer_sum / number_questions_asked;
 
-						std::cout << new_time_average << " new. " << old_time_average << " old." << std::endl;
+						//std::cout << new_time_average << " new. " << old_time_average << " old." << std::endl;
 
 						//store and calculate individual question average and count
 						for (int count = 0; count < questions->getNumberofElements(); count++)
@@ -264,12 +265,6 @@ void Connection::Connect(Questions *questions, std::string file_name)
 							}
 						}
 
-						//see if the average has doubled.
-						//std::cout << result_buffer << " result calculations." << std::endl;
-						//std::cout << time_buffer << " time elapsed." << std::endl;
-
-						//std::cout << questions->getVariableChange(z) << " variable change." << std::endl;
-						//std::cout << result_buffer << " result buffer." << std::endl;
 
 						if (result_buffer > std::stof(questions->getVariableChange(z)))
 						{
