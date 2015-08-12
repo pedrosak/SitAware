@@ -177,6 +177,7 @@ void Connection::Connect(Questions *questions, std::string file_name)
 						}
 						else
 						{
+							//No need to convert fsx results. Pass it to the variable.
 							fsx_calculated_answer = Connection::getAnswer();
 						}
 
@@ -208,7 +209,7 @@ void Connection::Connect(Questions *questions, std::string file_name)
 								//Save location of current question in arrays for calculations
 								int location_of_current_question_in_arrays = count;
 
-								if ((number_questions_asked > 1) && (question_average_array[location_of_current_question_in_arrays] > (2 * current_question_average_buffer)))
+								if ((number_questions_asked > 1) && (question_average_array[location_of_current_question_in_arrays] > (2 * current_question_average_buffer)) && (current_question_average_buffer != 0))
 								{
 									current_question_increase_multiplier =question_average_array[location_of_current_question_in_arrays] / current_question_average_buffer;
 									ofs << "Average response time  for question number " << location_of_current_question_in_arrays << " increased by a factor of " << current_question_increase_multiplier << ". The previews average was " << current_question_average_buffer << " and the new average is " << question_average_array[location_of_current_question_in_arrays] << "." << std::endl;
@@ -238,7 +239,7 @@ void Connection::Connect(Questions *questions, std::string file_name)
 
 
 						//Check to see if the current average and the new average has doubled
-						if ((number_questions_asked > 1) && (new_time_average > (2 * old_time_average)))
+						if ((number_questions_asked > 1) && (new_time_average > (2 * old_time_average)) && (old_time_average != 0))
 						{
 							average_increase_multiplier = (new_time_average / old_time_average);
 							ofs << "Average response time  increase by a factor of " <<  average_increase_multiplier << ". The previews average was " << old_time_average << " and the new average is " << new_time_average << "." << std::endl;
@@ -421,6 +422,10 @@ void CALLBACK Connection::MyDispatchProc(SIMCONNECT_RECV * pData, DWORD cbData, 
 		}
 
 		//Aiport return list
+		//Currently the program can request all aiports around the users airplane. 
+		//However it does not yet use that data to determin the proximity of each airport to the users plane. It appears that the first returned airport
+		//is the closest airport to the user but this is not confirmed.
+		//All airport information is saved in the Airport struct.
 		case SIMCONNECT_RECV_ID_AIRPORT_LIST:
 		{
 			SIMCONNECT_RECV_AIRPORT_LIST * airport_list_ptr = (SIMCONNECT_RECV_AIRPORT_LIST *)pData;
