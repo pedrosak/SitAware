@@ -14,12 +14,13 @@ public:
 	//Variables
 	static unsigned int quit; //Variable used to notifie that FSX has quit
 	static HANDLE hSimConnect;	//Variables used with Simconnect
+	float fsx_calculated_answer; //Variable used to conver FSX answer to a diferent unit (Ex. Radian to Degree)
 
 	//Answer and question buffer variables
 	static float fsx_answer_buffer;	//FSX fetched answer
 	float result_buffer;		//calculation of user and fsx answer
 	float user_input_answer;	//User input answer
-
+	
 	std::string input_string;		//user input for questions (1 to ask a questions)
 
 	//Clock timer variables
@@ -37,6 +38,10 @@ public:
 	int number_questions_asked = 0;			// counts how many questions were asked
 	int improvement_count = 0;		// how many times has the user shown impovement
 	int suggestion_count = 0;
+
+	//individual question buffer var
+	double current_question_increase_multiplier = 0;
+	double current_question_average_buffer = 0;
 
 	static int started_flag;	//Flag to control initiation of FSX simulation
 

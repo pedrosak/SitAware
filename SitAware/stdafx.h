@@ -19,6 +19,7 @@
 #include <fstream>
 #include <time.h>
 #include <mmsystem.h>
+#include <vector>
 
 //Created header files
 #include "targetver.h"

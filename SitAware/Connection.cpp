@@ -1,6 +1,9 @@
 #include "stdafx.h"
 #include <bitset>
 
+
+#define HEIGHT 3	//Height of multi-dim array for questions_average
+
 unsigned int Connection::quit;
 
 HANDLE Connection::hSimConnect = NULL;
@@ -89,6 +92,22 @@ void Connection::Connect(Questions *questions, std::string file_name)
 			hr = SimConnect_SubscribeToSystemEvent(hSimConnect, EVENT_SIM_START, "SimStart");
 			hr = SimConnect_SubscribeToSystemEvent(hSimConnect, EVENT_SIM_STOP, "SimStop");
 
+			//create three arrays to hold question number, question average response time, and question count
+			int *question_number_array = new int[questions->getNumberofElements()];
+			double *question_average_array = new double[questions->getNumberofElements()];
+			double *question_time_sum_array = new double[questions->getNumberofElements()];
+			int *question_count_array = new int[questions->getNumberofElements()];
+
+			//Populate question number in the question number array
+			for (int count = 0; count < questions->getNumberofElements(); count++)
+			{
+				question_number_array[count] = count + 1;	//add question numbers
+				question_average_array[count] = 0;	//fill array with zero
+				question_count_array[count] = 0;	//fill array with zero
+				question_time_sum_array[count] = 0; //fill array with zero
+				//std::cout << question_count_array[count] << " ";
+			}
+
 			while (quit == 0)
 			{
 				skip_loop: if (Connection::started_flag == 1)
@@ -115,6 +134,8 @@ void Connection::Connect(Questions *questions, std::string file_name)
 						//Pick a random questions from database
 						z = rand() % questions->getNumberofElements() + 1;
 
+
+						//Playing sound has not worked on C++ due to passing of string via questions pointer. Much easier to do this on C#
 						//play wav of question in databaseth;
 						//PlaySound(TEXT("C:\\Users\\Elite\\Desktop\\test.wav"), NULL, SND_ASYNC | SND_FILENAME);
 						//PlaySound((LPCWSTR)questions->getQuestionWav(z).c_str(), NULL, SND_ASYNC | SND_FILENAME);
@@ -145,14 +166,21 @@ void Connection::Connect(Questions *questions, std::string file_name)
 						//write time_buffer to file
 						ofs << " Answered in " << time_buffer << " seconds." << std::endl;
 
-
 						//Process the next SimConnect messaged recieved thorugh the spcified callback function MyDispatchProc
 						SimConnect_CallDispatch(Connection::hSimConnect, MyDispatchProc, NULL);
 
-						//std::cout << Connection::getAnswer() << " answer from FSX" << std::endl;
-
+						//Check if questions is asking for heading. If it is then FSX result must be converted from radiants to degrees
+						if (questions->getQuestionText(z).find("heading") != std::string::npos)
+						{
+							//Convert heading from fsx radians to degrees
+							fsx_calculated_answer = Connection::getAnswer() * 57.2957795;
+						}
+						else
+						{
+							fsx_calculated_answer = Connection::getAnswer();
+						}
 						//Calculate answer different
-						result_buffer = abs(std::stof(input_string) - Connection::getAnswer());
+						result_buffer = abs(std::stof(input_string) - fsx_calculated_answer);
 
 						//sum all the response times
 						time_buffer_sum = time_buffer_sum + time_buffer;
@@ -162,10 +190,56 @@ void Connection::Connect(Questions *questions, std::string file_name)
 
 						std::cout << new_time_average << " new. " << old_time_average << " old." << std::endl;
 
+						//store and calculate individual question average and count
+						for (int count = 0; count < questions->getNumberofElements(); count++)
+						{
+							if (question_number_array[count] == z)
+							{
+								//save current question average
+								current_question_average_buffer = question_average_array[count];
+								//increase count by 1
+								question_count_array[count] += 1;
+								//Sum time to respond to this question
+								question_time_sum_array[count] += time_buffer;
+								//calculate average and store it to average array
+								question_average_array[count] = question_time_sum_array[count] / question_count_array[count];
+
+								//Save location of current question in arrays for calculations
+								int location_of_current_question_in_arrays = count;
+
+								if ((number_questions_asked > 1) && (question_average_array[location_of_current_question_in_arrays] > (2 * current_question_average_buffer)))
+								{
+									current_question_increase_multiplier =question_average_array[location_of_current_question_in_arrays] / current_question_average_buffer;
+									ofs << "Average response time  for question number " << location_of_current_question_in_arrays << " increased by a factor of " << current_question_increase_multiplier << ". The previews average was " << current_question_average_buffer << " and the new average is " << question_average_array[location_of_current_question_in_arrays] << "." << std::endl;
+									incorrect_count_time += 1;
+									if (incorrect_count_time >= 2)
+									{
+										//Average response time increase twice. Make suggestion
+										//Make a suggestion
+										std::cout << "\n** SUGGESTION 1 - Decrease automation**" << std::endl;
+										ofs << "**Suggestion was made.**" << std::endl;
+										//increase suggestions count
+										suggestion_count += 1;
+									}
+								}
+								else if ((number_questions_asked > 1) && (question_average_array[location_of_current_question_in_arrays] > (current_question_average_buffer)))
+								{
+									improvement_count += 1;
+									if ((improvement_count > 2) && suggestion_count >= 1)
+									{
+										//Improvement is being shown
+										ofs << "Improving answer reaction time. Suggest to increase automation." << std::endl;
+										std::cout << "\n** SUGGESTION 2 - Increase automation **" << std::endl;
+									}
+								}
+							}
+						}
+
+
 						//Check to see if the current average and the new average has doubled
 						if ((number_questions_asked > 1) && (new_time_average > (2 * old_time_average)))
 						{
-							average_increase_multiplier = roundf((new_time_average / old_time_average));
+							average_increase_multiplier = (new_time_average / old_time_average);
 							ofs << "Average response time  increase by a factor of " <<  average_increase_multiplier << ". The previews average was " << old_time_average << " and the new average is " << new_time_average << "." << std::endl;
 							incorrect_count_time += 1;
 
@@ -200,7 +274,7 @@ void Connection::Connect(Questions *questions, std::string file_name)
 						if (result_buffer > std::stof(questions->getVariableChange(z)))
 						{
 							//incorrect answer
-							ofs << "Incorrect answer number " << incorrect_count_error + 1 << ". FSX result was " << Connection::getAnswer() << ". Difference in answers " << result_buffer << std::endl;
+							ofs << "Incorrect answer number " << incorrect_count_error + 1 << ". FSX result was " << fsx_calculated_answer << ". Difference in answers " << result_buffer << std::endl;
 							std::cout << "\nIncorrect Answer." << std::endl;
 
 							//count how many incorrect answer were provided
@@ -220,7 +294,7 @@ void Connection::Connect(Questions *questions, std::string file_name)
 						}
 						else
 						{
-							ofs << "Correct answer. FSX result was " << Connection::getAnswer() << ". Difference in answers was " << result_buffer << std::endl;
+							ofs << "Correct answer. FSX result was " << fsx_calculated_answer << ". Difference in answers was " << result_buffer << std::endl;
 						}
 
 						ofs << "\n\n";
